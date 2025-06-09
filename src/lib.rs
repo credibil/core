@@ -31,6 +31,12 @@ impl<T> From<String> for Kind<T> {
     }
 }
 
+impl<T> From<&str> for Kind<T> {
+    fn from(value: &str) -> Self {
+        Self::String(value.to_string())
+    }
+}
+
 impl<T> Kind<T> {
     /// Returns `true` if the quota is a single object.
     pub const fn as_str(&self) -> Option<&str> {
