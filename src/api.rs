@@ -8,6 +8,107 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use http::StatusCode;
+use tracing::instrument;
+
+/// Build an API `Client` to execute the request.
+#[derive(Clone, Debug)]
+pub struct Client<P> {
+    /// The owner of the client, typically a DID or URL.
+    pub owner: String,
+
+    /// The provider to use while handling of the request.
+    pub provider: P,
+}
+
+impl<P> Client<P> {
+    /// Create a new `Client`.
+    #[must_use]
+    pub fn new(owner: impl Into<String>, provider: P) -> Self {
+        Self {
+            owner: owner.into(),
+            provider,
+        }
+    }
+}
+
+impl<P> Client<P> {
+    /// Create a new `Request` with no headers.
+    pub const fn request<B: Body>(&'_ self, body: B) -> RequestBuilder<'_, P, Unset, B> {
+        RequestBuilder::new(self, body)
+    }
+}
+
+/// Request builder.
+#[derive(Debug)]
+pub struct RequestBuilder<'a, P, H, B: Body> {
+    client: &'a Client<P>,
+    headers: H,
+    body: B,
+}
+
+/// The request has no headers.
+#[doc(hidden)]
+pub struct Unset;
+/// The request has headers.
+#[doc(hidden)]
+pub struct HeaderSet<H: Headers>(H);
+
+impl<'a, P, B: Body> RequestBuilder<'a, P, Unset, B> {
+    /// Create a new `Request` instance.
+    pub const fn new(client: &'a Client<P>, body: B) -> Self {
+        Self {
+            client,
+            headers: Unset,
+            body,
+        }
+    }
+
+    /// Set the headers for the request.
+    #[must_use]
+    pub fn headers<H: Headers>(self, headers: H) -> RequestBuilder<'a, P, HeaderSet<H>, B> {
+        RequestBuilder {
+            client: self.client,
+            headers: HeaderSet(headers),
+            body: self.body,
+        }
+    }
+}
+
+impl<P, B: Body> RequestBuilder<'_, P, Unset, B> {
+    /// Process the request and return a response.
+    ///
+    /// # Errors
+    ///
+    /// Will fail if request cannot be processed.
+    #[instrument(level = "debug", skip(self))]
+    pub async fn execute<U, E>(self) -> Result<Response<U>, E>
+    where
+        B: Body,
+        Request<B, NoHeaders>: Handler<U, P, Error = E> + From<B>,
+    {
+        let request: Request<B, NoHeaders> = self.body.into();
+        Ok(request.handle(&self.client.owner, &self.client.provider).await?.into())
+    }
+}
+
+impl<P, H: Headers, B: Body> RequestBuilder<'_, P, HeaderSet<H>, B> {
+    /// Process the request and return a response.
+    ///
+    /// # Errors
+    ///
+    /// Will fail if request cannot be processed.
+    pub async fn execute<U, E>(self) -> Result<Response<U>, E>
+    where
+        B: Body,
+        Request<B, H>: Handler<U, P, Error = E>,
+    {
+        let request = Request {
+            body: self.body,
+            headers: self.headers.0.clone(),
+        };
+        Ok(request.handle(&self.client.owner, &self.client.provider).await?.into())
+    }
+}
 
 /// A request to process.
 #[derive(Clone, Debug)]
