@@ -22,7 +22,8 @@ where
     T: Serialize,
     E: Serialize,
 {
-    type Body = http_body_util::Full<Bytes>;
+    // type Body = http_body_util::Full<Bytes>;
+    type Body = axum_core::body::Body;
 
     /// Create a new reply with the given status code and body.
     fn into_http(self) -> http::Response<Self::Body> {
