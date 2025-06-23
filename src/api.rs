@@ -12,7 +12,7 @@ use tracing::instrument;
 
 /// Build an API `Client` to execute the request.
 #[derive(Clone, Debug)]
-pub struct Client<P> {
+pub struct Client<P: Send + Sync> {
     /// The owner of the client, typically a DID or URL.
     pub owner: String,
 
@@ -20,7 +20,7 @@ pub struct Client<P> {
     pub provider: P,
 }
 
-impl<P> Client<P> {
+impl<P: Send + Sync> Client<P> {
     /// Create a new `Client`.
     #[must_use]
     pub fn new(owner: impl Into<String>, provider: P) -> Self {
@@ -31,7 +31,7 @@ impl<P> Client<P> {
     }
 }
 
-impl<P> Client<P> {
+impl<P: Send + Sync> Client<P> {
     /// Create a new `Request` with no headers.
     pub const fn request<B: Body>(&'_ self, body: B) -> RequestBuilder<'_, P, Unset, B> {
         RequestBuilder::new(self, body)
@@ -40,7 +40,11 @@ impl<P> Client<P> {
 
 /// Request builder.
 #[derive(Debug)]
-pub struct RequestBuilder<'a, P, H, B: Body> {
+pub struct RequestBuilder<'a, P, H, B>
+where
+    P: Send + Sync,
+    B: Body,
+{
     client: &'a Client<P>,
     headers: H,
     body: B,
@@ -53,7 +57,11 @@ pub struct Unset;
 #[doc(hidden)]
 pub struct HeaderSet<H: Headers>(H);
 
-impl<'a, P, B: Body> RequestBuilder<'a, P, Unset, B> {
+impl<'a, P, B> RequestBuilder<'a, P, Unset, B>
+where
+    P: Send + Sync,
+    B: Body,
+{
     /// Create a new `Request` instance.
     pub const fn new(client: &'a Client<P>, body: B) -> Self {
         Self {
@@ -74,7 +82,11 @@ impl<'a, P, B: Body> RequestBuilder<'a, P, Unset, B> {
     }
 }
 
-impl<P, B: Body> RequestBuilder<'_, P, Unset, B> {
+impl<P, B> RequestBuilder<'_, P, Unset, B>
+where
+    P: Send + Sync,
+    B: Body,
+{
     /// Process the request and return a response.
     ///
     /// # Errors
@@ -91,7 +103,12 @@ impl<P, B: Body> RequestBuilder<'_, P, Unset, B> {
     }
 }
 
-impl<P, H: Headers, B: Body> RequestBuilder<'_, P, HeaderSet<H>, B> {
+impl<P, H, B> RequestBuilder<'_, P, HeaderSet<H>, B>
+where
+    P: Send + Sync,
+    B: Body,
+    H: Headers,
+{
     /// Process the request and return a response.
     ///
     /// # Errors
@@ -100,7 +117,8 @@ impl<P, H: Headers, B: Body> RequestBuilder<'_, P, HeaderSet<H>, B> {
     pub async fn execute<U, E>(self) -> Result<Response<U>, E>
     where
         B: Body,
-        Request<B, H>: Handler<U, P, Error = E>,
+        E: Send,
+        Request<B, H>: Handler<U, P, Error = E> + Send,
     {
         let request = Request {
             body: self.body,
