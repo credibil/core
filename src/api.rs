@@ -117,8 +117,7 @@ where
     pub async fn execute<U, E>(self) -> Result<Response<U>, E>
     where
         B: Body,
-        E: Send,
-        Request<B, H>: Handler<U, P, Error = E> + Send,
+        Request<B, H>: Handler<U, P, Error = E>,
     {
         let request = Request {
             body: self.body,
