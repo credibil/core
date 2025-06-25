@@ -13,9 +13,6 @@ use tracing::instrument;
 /// Build an API `Client` to execute the request.
 #[derive(Clone, Debug)]
 pub struct Client<P: Send + Sync> {
-    /// The owner of the client, typically a DID or URL.
-    pub owner: String,
-
     /// The provider to use while handling of the request.
     pub provider: P,
 }
@@ -23,41 +20,48 @@ pub struct Client<P: Send + Sync> {
 impl<P: Send + Sync> Client<P> {
     /// Create a new `Client`.
     #[must_use]
-    pub fn new(owner: impl Into<String>, provider: P) -> Self {
-        Self {
-            owner: owner.into(),
-            provider,
-        }
+    pub const fn new(provider: P) -> Self {
+        Self { provider }
     }
 }
 
 impl<P: Send + Sync> Client<P> {
     /// Create a new `Request` with no headers.
-    pub const fn request<B: Body>(&'_ self, body: B) -> RequestBuilder<'_, P, Unset, B> {
+    pub const fn request<B: Body>(
+        &'_ self, body: B,
+    ) -> RequestBuilder<'_, P, NoOwner, NoHeader, B> {
         RequestBuilder::new(self, body)
     }
 }
 
 /// Request builder.
 #[derive(Debug)]
-pub struct RequestBuilder<'a, P, H, B>
+pub struct RequestBuilder<'a, P, O, H, B>
 where
     P: Send + Sync,
     B: Body,
 {
     client: &'a Client<P>,
+    owner: O,
     headers: H,
     body: B,
 }
 
 /// The request has no headers.
 #[doc(hidden)]
-pub struct Unset;
+pub struct NoHeader;
 /// The request has headers.
 #[doc(hidden)]
 pub struct HeaderSet<H: Headers>(H);
 
-impl<'a, P, B> RequestBuilder<'a, P, Unset, B>
+/// The request has no owner set.
+#[doc(hidden)]
+pub struct NoOwner;
+/// The request has a owner set.
+#[doc(hidden)]
+pub struct OwnerSet<'a>(&'a str);
+
+impl<'a, P, B> RequestBuilder<'a, P, NoOwner, NoHeader, B>
 where
     P: Send + Sync,
     B: Body,
@@ -66,23 +70,48 @@ where
     pub const fn new(client: &'a Client<P>, body: B) -> Self {
         Self {
             client,
-            headers: Unset,
+            owner: NoOwner,
+            headers: NoHeader,
             body,
         }
     }
+}
 
+impl<'a, P, H, B> RequestBuilder<'a, P, NoOwner, H, B>
+where
+    P: Send + Sync,
+    B: Body,
+{
     /// Set the headers for the request.
     #[must_use]
-    pub fn headers<H: Headers>(self, headers: H) -> RequestBuilder<'a, P, HeaderSet<H>, B> {
+    pub fn owner<'o>(self, owner: &'o str) -> RequestBuilder<'a, P, OwnerSet<'o>, H, B> {
         RequestBuilder {
             client: self.client,
+            headers: self.headers,
+            owner: OwnerSet(owner),
+            body: self.body,
+        }
+    }
+}
+
+impl<'a, P, O, B> RequestBuilder<'a, P, O, NoHeader, B>
+where
+    P: Send + Sync,
+    B: Body,
+{
+    /// Set the headers for the request.
+    #[must_use]
+    pub fn headers<H: Headers>(self, headers: H) -> RequestBuilder<'a, P, O, HeaderSet<H>, B> {
+        RequestBuilder {
+            client: self.client,
+            owner: self.owner,
             headers: HeaderSet(headers),
             body: self.body,
         }
     }
 }
 
-impl<P, B> RequestBuilder<'_, P, Unset, B>
+impl<P, B> RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B>
 where
     P: Send + Sync,
     B: Body,
@@ -96,14 +125,14 @@ where
     pub async fn execute<U, E>(self) -> Result<Response<U>, E>
     where
         B: Body,
-        Request<B, NoHeaders>: Handler<U, P, Error = E> + From<B>,
+        Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
     {
-        let request: Request<B, NoHeaders> = self.body.into();
-        Ok(request.handle(&self.client.owner, &self.client.provider).await?.into())
+        let request: Request<B, Empty> = self.body.into();
+        Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
     }
 }
 
-impl<P, H, B> RequestBuilder<'_, P, HeaderSet<H>, B>
+impl<P, H, B> RequestBuilder<'_, P, OwnerSet<'_>, HeaderSet<H>, B>
 where
     P: Send + Sync,
     B: Body,
@@ -123,13 +152,13 @@ where
             body: self.body,
             headers: self.headers.0.clone(),
         };
-        Ok(request.handle(&self.client.owner, &self.client.provider).await?.into())
+        Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
     }
 }
 
 /// A request to process.
 #[derive(Clone, Debug)]
-pub struct Request<B, H = NoHeaders>
+pub struct Request<B, H = Empty>
 where
     B: Body,
     H: Headers,
@@ -143,16 +172,13 @@ where
 
 impl<B: Body> From<B> for Request<B> {
     fn from(body: B) -> Self {
-        Self {
-            body,
-            headers: NoHeaders,
-        }
+        Self { body, headers: Empty }
     }
 }
 
 /// Top-level response data structure common to all handler.
 #[derive(Clone, Debug)]
-pub struct Response<T, H = NoHeaders>
+pub struct Response<O, H = Empty>
 where
     H: Headers,
 {
@@ -163,7 +189,7 @@ where
     pub headers: Option<H>,
 
     /// The endpoint-specific response.
-    pub body: T,
+    pub body: O,
 }
 
 impl<T> From<T> for Response<T> {
@@ -194,7 +220,7 @@ pub trait Handler<U, P> {
 
     /// Routes the message to the concrete handler used to process the message.
     fn handle(
-        self, tenant: &str, provider: &P,
+        self, owner: &str, provider: &P,
     ) -> impl Future<Output = Result<impl Into<Response<U>>, Self::Error>> + Send;
 }
 
@@ -208,5 +234,5 @@ pub trait Headers: Clone + Debug + Send + Sync {}
 
 /// Implement empty headers for use by handlers that do not require headers.
 #[derive(Clone, Debug)]
-pub struct NoHeaders;
-impl Headers for NoHeaders {}
+pub struct Empty;
+impl Headers for Empty {}
