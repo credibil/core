@@ -169,8 +169,8 @@ impl<P, B, U, E> IntoFuture for RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B,
 where
     P: Send + Sync,
     B: Body,
-    U: Send + Sync + 'static,
-    E: Send + Sync + 'static,
+    U: Send,
+    E: Send,
     Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
 {
     type Output = Result<Response<U>, E>;
@@ -187,8 +187,8 @@ where
     P: Send + Sync,
     H: Headers,
     B: Body,
-    U: Send + Sync + 'static,
-    E: Send + Sync + 'static,
+    U: Send,
+    E: Send,
     Request<B, H>: Handler<U, P, Error = E>,
 {
     type Output = Result<Response<U>, E>;
