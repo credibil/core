@@ -3,6 +3,21 @@
 //! The api module provides the entry point to the public API. Requests are routed
 //! to the appropriate handler for processing, returning a response that can
 //! be serialized to a JSON object or directly to HTTP.
+//!
+//! ## Example Usage
+//!
+//! ```rust,ignore
+//! use core::api::{Client, Body, Headers};
+//!
+//! // Create a client
+//! let client = Client::new(provider);
+//!
+//! // Simple request without headers
+//! let response = client.request(my_request).owner("alice").await?;
+//!
+//! // Request with headers
+//! let response = client.request(my_request).owner("alice").headers(my_headers).await?;
+//! ```
 
 use std::fmt::Debug;
 use std::future::{Future, IntoFuture};
@@ -10,9 +25,13 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 
 use http::StatusCode;
-use tracing::instrument;
+// use tracing::instrument;
 
 /// Build an API `Client` to execute the request.
+///
+/// The client is the main entry point for making API requests. It holds
+/// the provider configuration and provides methods to create the request 
+/// builder.
 #[derive(Clone, Debug)]
 pub struct Client<P: Send + Sync> {
     /// The provider to use while handling of the request.
@@ -36,7 +55,14 @@ impl<P: Send + Sync> Client<P> {
     }
 }
 
-/// Request builder.
+/// A type-safe request builder that uses the type system to ensure required
+/// fields are set before execution.
+///
+/// The builder uses types to track its state:
+/// - `O`: Owner state (`NoOwner` or `OwnerSet`)
+/// - `H`: Header state (`NoHeader` or `HeaderSet`)
+/// - `U`: Expected response type
+/// - `E`: Expected error type
 #[derive(Debug)]
 pub struct RequestBuilder<'a, P, O, H, B, U, E>
 where
@@ -120,50 +146,50 @@ where
     }
 }
 
-impl<P, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B, U, E>
-where
-    P: Send + Sync,
-    B: Body,
-{
-    /// Process the request and return a response.
-    ///
-    /// # Errors
-    ///
-    /// Will fail if request cannot be processed.
-    #[instrument(level = "debug", skip(self))]
-    pub async fn execute(self) -> Result<Response<U>, E>
-    where
-        B: Body,
-        Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
-    {
-        let request: Request<B, Empty> = self.body.into();
-        Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
-    }
-}
+// impl<P, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B, U, E>
+// where
+//     P: Send + Sync,
+//     B: Body,
+// {
+//     /// Process the request and return a response.
+//     ///
+//     /// # Errors
+//     ///
+//     /// Will fail if request cannot be processed.
+//     #[instrument(level = "debug", skip(self))]
+//     pub async fn execute(self) -> Result<Response<U>, E>
+//     where
+//         B: Body,
+//         Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
+//     {
+//         let request: Request<B, Empty> = self.body.into();
+//         Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
+//     }
+// }
 
-impl<P, H, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, HeaderSet<H>, B, U, E>
-where
-    P: Send + Sync,
-    B: Body,
-    H: Headers,
-{
-    /// Process the request and return a response.
-    ///
-    /// # Errors
-    ///
-    /// Will fail if request cannot be processed.
-    pub async fn execute(self) -> Result<Response<U>, E>
-    where
-        B: Body,
-        Request<B, H>: Handler<U, P, Error = E>,
-    {
-        let request = Request {
-            body: self.body,
-            headers: self.headers.0.clone(),
-        };
-        Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
-    }
-}
+// impl<P, H, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, HeaderSet<H>, B, U, E>
+// where
+//     P: Send + Sync,
+//     B: Body,
+//     H: Headers,
+// {
+//     /// Process the request and return a response.
+//     ///
+//     /// # Errors
+//     ///
+//     /// Will fail if request cannot be processed.
+//     pub async fn execute(self) -> Result<Response<U>, E>
+//     where
+//         B: Body,
+//         Request<B, H>: Handler<U, P, Error = E>,
+//     {
+//         let request = Request {
+//             body: self.body,
+//             headers: self.headers.0.clone(),
+//         };
+//         Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
+//     }
+// }
 
 impl<P, B, U, E> IntoFuture for RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B, U, E>
 where
@@ -178,7 +204,9 @@ where
     type IntoFuture = impl Future<Output = Self::Output> + Send;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.execute()
+        // self.execute()
+        let request: Request<B, Empty> = self.body.into();
+        async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
     }
 }
 
@@ -196,7 +224,12 @@ where
     type IntoFuture = impl Future<Output = Self::Output> + Send;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.execute()
+        // self.execute()
+        let request = Request {
+            body: self.body,
+            headers: self.headers.0.clone(),
+        };
+        async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
     }
 }
 
