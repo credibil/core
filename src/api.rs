@@ -23,9 +23,8 @@ use std::fmt::Debug;
 use std::future::{Future, IntoFuture};
 use std::marker::PhantomData;
 use std::ops::Deref;
+use std::pin::Pin;
 
-use futures::FutureExt;
-use futures::future::BoxFuture;
 use http::StatusCode;
 // use tracing::instrument;
 
@@ -145,11 +144,11 @@ where
     P: Send + Sync,
     H: Headers + 'a,
     B: Body + 'a,
-    U: Send,
+    U: Send + 'a,
     E: Send,
     Request<B, H>: Handler<U, P, Error = E>,
 {
-    type IntoFuture = BoxFuture<'a, Self::Output>;
+    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send + 'a>>;
     type Output = Result<Response<U>, E>;
 
     fn into_future(self) -> Self::IntoFuture {
@@ -157,8 +156,7 @@ where
             body: self.body,
             headers: self.headers,
         };
-        async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
-            .boxed()
+        Box::pin(request.handle(self.owner.0, &self.client.provider))
     }
 }
 
@@ -227,7 +225,7 @@ pub trait Handler<U, P> {
     /// Routes the message to the concrete handler used to process the message.
     fn handle(
         self, owner: &str, provider: &P,
-    ) -> impl Future<Output = Result<impl Into<Response<U>>, Self::Error>> + Send;
+    ) -> impl Future<Output = Result<Response<U>, Self::Error>> + Send;
 }
 
 /// The `Body` trait is used to restrict the types able to implement
