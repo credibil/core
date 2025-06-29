@@ -52,7 +52,7 @@ impl<P: Send + Sync> Client<P> {
     /// Create a new `Request` with no headers.
     pub const fn request<B: Body, U, E>(
         &'_ self, body: B,
-    ) -> RequestBuilder<'_, P, NoOwner, NoHeader, B, U, E> {
+    ) -> RequestBuilder<'_, P, NoOwner, Empty, B, U, E> {
         RequestBuilder::new(self, body)
     }
 }
@@ -70,21 +70,14 @@ pub struct RequestBuilder<'a, P, O, H, B, U, E>
 where
     P: Send + Sync,
     B: Body,
+    H: Headers,
 {
     client: &'a Client<P>,
     owner: O,
     headers: H,
     body: B,
-
     _phantom: PhantomData<(U, E)>,
 }
-
-/// The request has no headers.
-#[doc(hidden)]
-pub struct NoHeader;
-/// The request has headers.
-#[doc(hidden)]
-pub struct HeaderSet<H: Headers>(H);
 
 /// The request has no owner set.
 #[doc(hidden)]
@@ -93,7 +86,7 @@ pub struct NoOwner;
 #[doc(hidden)]
 pub struct OwnerSet<'a>(&'a str);
 
-impl<'a, P, B, U, E> RequestBuilder<'a, P, NoOwner, NoHeader, B, U, E>
+impl<'a, P, B, U, E> RequestBuilder<'a, P, NoOwner, Empty, B, U, E>
 where
     P: Send + Sync,
     B: Body,
@@ -103,7 +96,7 @@ where
         Self {
             client,
             owner: NoOwner,
-            headers: NoHeader,
+            headers: Empty,
             body,
             _phantom: PhantomData,
         }
@@ -114,6 +107,7 @@ impl<'a, P, H, B, U, E> RequestBuilder<'a, P, NoOwner, H, B, U, E>
 where
     P: Send + Sync,
     B: Body,
+    H: Headers,
 {
     /// Set the headers for the request.
     #[must_use]
@@ -128,46 +122,25 @@ where
     }
 }
 
-impl<'a, P, O, B, U, E> RequestBuilder<'a, P, O, NoHeader, B, U, E>
+impl<'a, P, O, B, U, E> RequestBuilder<'a, P, O, Empty, B, U, E>
 where
     P: Send + Sync,
     B: Body,
 {
-    /// Set the headers for the request.
+    /// Set request headers.
     #[must_use]
-    pub fn headers<H: Headers>(
-        self, headers: H,
-    ) -> RequestBuilder<'a, P, O, HeaderSet<H>, B, U, E> {
+    pub fn headers<H: Headers>(self, headers: H) -> RequestBuilder<'a, P, O, H, B, U, E> {
         RequestBuilder {
             client: self.client,
             owner: self.owner,
-            headers: HeaderSet(headers),
+            headers,
             body: self.body,
             _phantom: PhantomData,
         }
     }
 }
 
-impl<'a, P, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, NoHeader, B, U, E>
-where
-    P: Send + Sync,
-    B: Body + 'a,
-    U: Send,
-    E: Send,
-    Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
-{
-    // type IntoFuture = impl Future<Output = Self::Output> + Send;
-    type IntoFuture = BoxFuture<'a, Self::Output>;
-    type Output = Result<Response<U>, E>;
-
-    fn into_future(self) -> Self::IntoFuture {
-        let request: Request<B, Empty> = self.body.into();
-        async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
-            .boxed()
-    }
-}
-
-impl<'a, P, H, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, HeaderSet<H>, B, U, E>
+impl<'a, P, H, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, H, B, U, E>
 where
     P: Send + Sync,
     H: Headers + 'a,
@@ -182,7 +155,7 @@ where
     fn into_future(self) -> Self::IntoFuture {
         let request = Request {
             body: self.body,
-            headers: self.headers.0.clone(),
+            headers: self.headers,
         };
         async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
             .boxed()
