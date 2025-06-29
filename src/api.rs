@@ -24,13 +24,15 @@ use std::future::{Future, IntoFuture};
 use std::marker::PhantomData;
 use std::ops::Deref;
 
+use futures::FutureExt;
+use futures::future::BoxFuture;
 use http::StatusCode;
 // use tracing::instrument;
 
 /// Build an API `Client` to execute the request.
 ///
 /// The client is the main entry point for making API requests. It holds
-/// the provider configuration and provides methods to create the request 
+/// the provider configuration and provides methods to create the request
 /// builder.
 #[derive(Clone, Debug)]
 pub struct Client<P: Send + Sync> {
@@ -146,90 +148,44 @@ where
     }
 }
 
-// impl<P, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B, U, E>
-// where
-//     P: Send + Sync,
-//     B: Body,
-// {
-//     /// Process the request and return a response.
-//     ///
-//     /// # Errors
-//     ///
-//     /// Will fail if request cannot be processed.
-//     #[instrument(level = "debug", skip(self))]
-//     pub async fn execute(self) -> Result<Response<U>, E>
-//     where
-//         B: Body,
-//         Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
-//     {
-//         let request: Request<B, Empty> = self.body.into();
-//         Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
-//     }
-// }
-
-// impl<P, H, B, U, E> RequestBuilder<'_, P, OwnerSet<'_>, HeaderSet<H>, B, U, E>
-// where
-//     P: Send + Sync,
-//     B: Body,
-//     H: Headers,
-// {
-//     /// Process the request and return a response.
-//     ///
-//     /// # Errors
-//     ///
-//     /// Will fail if request cannot be processed.
-//     pub async fn execute(self) -> Result<Response<U>, E>
-//     where
-//         B: Body,
-//         Request<B, H>: Handler<U, P, Error = E>,
-//     {
-//         let request = Request {
-//             body: self.body,
-//             headers: self.headers.0.clone(),
-//         };
-//         Ok(request.handle(self.owner.0, &self.client.provider).await?.into())
-//     }
-// }
-
-impl<P, B, U, E> IntoFuture for RequestBuilder<'_, P, OwnerSet<'_>, NoHeader, B, U, E>
+impl<'a, P, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, NoHeader, B, U, E>
 where
     P: Send + Sync,
-    B: Body,
+    B: Body + 'a,
     U: Send,
     E: Send,
     Request<B, Empty>: Handler<U, P, Error = E> + From<B>,
 {
+    // type IntoFuture = impl Future<Output = Self::Output> + Send;
+    type IntoFuture = BoxFuture<'a, Self::Output>;
     type Output = Result<Response<U>, E>;
 
-    type IntoFuture = impl Future<Output = Self::Output> + Send;
-
     fn into_future(self) -> Self::IntoFuture {
-        // self.execute()
         let request: Request<B, Empty> = self.body.into();
         async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
+            .boxed()
     }
 }
 
-impl<P, H, B, U, E> IntoFuture for RequestBuilder<'_, P, OwnerSet<'_>, HeaderSet<H>, B, U, E>
+impl<'a, P, H, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, HeaderSet<H>, B, U, E>
 where
     P: Send + Sync,
-    H: Headers,
-    B: Body,
+    H: Headers + 'a,
+    B: Body + 'a,
     U: Send,
     E: Send,
     Request<B, H>: Handler<U, P, Error = E>,
 {
+    type IntoFuture = BoxFuture<'a, Self::Output>;
     type Output = Result<Response<U>, E>;
 
-    type IntoFuture = impl Future<Output = Self::Output> + Send;
-
     fn into_future(self) -> Self::IntoFuture {
-        // self.execute()
         let request = Request {
             body: self.body,
             headers: self.headers.0.clone(),
         };
         async move { request.handle(self.owner.0, &self.client.provider).await.map(Into::into) }
+            .boxed()
     }
 }
 
