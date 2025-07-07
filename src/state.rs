@@ -1,13 +1,9 @@
 //! # State
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-
-use crate::datastore::Datastore;
-
-const STATE: &str = "STATE";
 
 /// The `StateStore` trait is implemented to provide concrete storage and
 /// retrieval of retrieve server state between requests.
@@ -52,30 +48,5 @@ impl<T: Serialize> From<T> for State<T> {
             body,
             expires_at: Utc::now(), //+ Expire::Authorized.duration(),
         }
-    }
-}
-
-impl<B> StateStore for B
-where
-    B: Datastore,
-{
-    #[allow(unused)]
-    async fn put<T: Serialize + Sync>(
-        &self, owner: &str, key: &str, state: &State<T>,
-    ) -> Result<()> {
-        let state = serde_json::to_vec(state)?;
-        Datastore::delete(self, owner, STATE, key).await?;
-        Datastore::put(self, owner, STATE, key, &state).await
-    }
-
-    async fn get<T: DeserializeOwned>(&self, owner: &str, key: &str) -> Result<State<T>> {
-        let Some(data) = Datastore::get(self, owner, STATE, key).await? else {
-            return Err(anyhow!("no matching item in state store"));
-        };
-        Ok(serde_json::from_slice(&data)?)
-    }
-
-    async fn purge(&self, owner: &str, key: &str) -> Result<()> {
-        Datastore::delete(self, owner, STATE, key).await
     }
 }
