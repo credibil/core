@@ -130,7 +130,7 @@ pub fn url_encode<T: Serialize>(value: &T) -> Result<String> {
 /// # Errors
 /// // TODO: Add errors
 pub fn url_decode<T: DeserializeOwned>(qs: &str) -> Result<T> {
-    let form = qs
+    let params = qs
         .split('&')
         .map(|param| {
             let mut kv = param.splitn(2, '=');
@@ -139,12 +139,16 @@ pub fn url_decode<T: DeserializeOwned>(qs: &str) -> Result<T> {
             (key.to_string(), value.to_string())
         })
         .collect::<Vec<_>>();
-    form_decode(form.as_slice())
+    form_decode(&params)
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use serde::{Deserialize, Serialize};
+
+    use super::*;
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     struct TopLevel {
@@ -170,7 +174,7 @@ mod tests {
             },
         };
 
-        let serialized = super::url_encode(&data).expect("should serialize");
+        let serialized = url_encode(&data).expect("should serialize");
         let expected = r#"field_1=value1&field_2=value2&nested=%7B%22field_3%22%3A%22value3%22%2C%22field_4%22%3A%22value4%22%7D"#;
         assert_eq!(serialized, expected);
     }
@@ -187,23 +191,23 @@ mod tests {
         }
 
         let u = E::Unit;
-        assert_eq!(super::url_encode(&u).unwrap(), r#"Unit"#);
+        assert_eq!(url_encode(&u).unwrap(), r#"Unit"#);
 
         let n = E::Newtype(1);
-        assert_eq!(super::url_encode(&n).unwrap(), r#"Newtype=1"#);
+        assert_eq!(url_encode(&n).unwrap(), r#"Newtype=1"#);
 
         let t = E::Tuple(1, 2);
-        assert_eq!(super::url_encode(&t).unwrap(), r#"Tuple=%5B1%2C2%5D"#);
+        assert_eq!(url_encode(&t).unwrap(), r#"Tuple=%5B1%2C2%5D"#);
 
         let s = E::Struct { a: 1 };
-        assert_eq!(super::url_encode(&s).unwrap(), r#"Struct=%7B%22a%22%3A1%7D"#);
+        assert_eq!(url_encode(&s).unwrap(), r#"Struct=%7B%22a%22%3A1%7D"#);
     }
 
     #[test]
     fn decode_struct() {
         let url = r#"field_1=value1&field_2=value2&nested=%7B%22field_3%22%3A%22value3%22%2C%22field_4%22%3A%22value4%22%7D"#;
 
-        let deserialized: TopLevel = super::url_decode(&url).expect("should deserialize");
+        let deserialized: TopLevel = url_decode(&url).expect("should deserialize");
         let expected = TopLevel {
             field_1: Some("value1".to_string()),
             field_2: "value2".to_string(),
@@ -212,6 +216,18 @@ mod tests {
                 field_4: "value4".to_string(),
             },
         };
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn query_params() {
+        let url = r#"field_1=value1&field_2=value2"#;
+
+        let deserialized: HashMap<String, String> = url_decode(&url).expect("should deserialize");
+        let expected = HashMap::from([
+            ("field_1".to_string(), "value1".to_string()),
+            ("field_2".to_string(), "value2".to_string()),
+        ]);
         assert_eq!(deserialized, expected);
     }
 }
