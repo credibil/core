@@ -1,5 +1,5 @@
 [package]
-name = "credibil-urlencode"
+name = "credibil-encoding"
 edition.workspace = true
 
 [lints]
