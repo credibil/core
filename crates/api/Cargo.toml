@@ -1,5 +1,5 @@
 [package]
-name = "api"
+name = "credibil-api"
 edition.workspace = true
 
 [lints]
