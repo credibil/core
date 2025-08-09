@@ -2,9 +2,6 @@
 
 //! # Core
 
-pub mod api;
-pub mod html;
-pub mod http;
 pub mod state;
 
 use serde::{Deserialize, Serialize};

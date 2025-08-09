@@ -7,7 +7,7 @@
 //! ## Example Usage
 //!
 //! ```rust,ignore
-//! use core::api::{Client, Body, Headers};
+//! use common::api::{Client, Body, Headers};
 //!
 //! // Create a client
 //! let client = Client::new(provider);
