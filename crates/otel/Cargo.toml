@@ -1,5 +1,5 @@
 [package]
-name = "credibil-telemetry"
+name = "credibil-otel"
 edition.workspace = true
 
 [lints]
