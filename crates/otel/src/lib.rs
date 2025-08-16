@@ -3,8 +3,8 @@
 //! Telemetry is a module that provides functionality for collecting and
 //! reporting OpenTelemetry-based metrics.
 
-mod init;
-mod tracing;
+pub mod init;
+pub mod tracing;
 
+pub use init::Telemetry;
 pub use tracing::*;
-pub use init::Otel;
