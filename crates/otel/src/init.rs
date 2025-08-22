@@ -78,11 +78,10 @@ impl Telemetry {
         let meter_provider = init_metrics(self.endpoint.as_deref())?;
         global::set_meter_provider(meter_provider);
 
-        // tracer
+        // tracing
         let tracer_provider = init_traces(self.endpoint.as_deref())?;
         global::set_tracer_provider(tracer_provider.clone());
 
-        // tracing
         let env_filter = EnvFilter::from_default_env()
             .add_directive("hyper=off".parse()?)
             .add_directive("h2=off".parse()?)
