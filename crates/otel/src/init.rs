@@ -12,8 +12,9 @@ use opentelemetry_otlp::{MetricExporter, SpanExporter, WithExportConfig};
 use opentelemetry_sdk::Resource;
 use opentelemetry_sdk::metrics::SdkMeterProvider;
 use opentelemetry_sdk::trace::SdkTracerProvider;
-use tracing_subscriber::fmt::format::FmtSpan;
+use tracing_opentelemetry::MetricsLayer;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
 static RESOURCE: OnceLock<Resource> = OnceLock::new();
@@ -76,22 +77,28 @@ impl Telemetry {
 
         // metrics
         let meter_provider = init_metrics(self.endpoint.as_deref())?;
-        global::set_meter_provider(meter_provider);
+        global::set_meter_provider(meter_provider.clone());
 
         // tracing
         let tracer_provider = init_traces(self.endpoint.as_deref())?;
         global::set_tracer_provider(tracer_provider.clone());
 
-        let env_filter = EnvFilter::from_default_env()
+        let filter_layer = EnvFilter::from_default_env()
             .add_directive("hyper=off".parse()?)
             .add_directive("h2=off".parse()?)
             .add_directive("tonic=off".parse()?);
-        let fmt_layer =
-            tracing_subscriber::fmt::layer().with_span_events(FmtSpan::NEW | FmtSpan::CLOSE);
+        // let fmt_layer =
+        //     tracing_subscriber::fmt::layer().with_span_events(FmtSpan::NEW | FmtSpan::CLOSE);
         let tracer = tracer_provider.tracer(self.app_name);
         let tracing_layer = tracing_opentelemetry::layer().with_tracer(tracer);
-        let subscriber = Registry::default().with(env_filter).with(fmt_layer).with(tracing_layer);
-        tracing::subscriber::set_global_default(subscriber)?;
+        let metrics_layer = MetricsLayer::new(meter_provider);
+
+        // set global default subscriber
+        Registry::default()
+            .with(filter_layer)
+            .with(tracing_layer)
+            .with(metrics_layer)
+            .try_init()?;
 
         Ok(())
     }
