@@ -13,7 +13,6 @@ use opentelemetry_sdk::Resource;
 use opentelemetry_sdk::metrics::SdkMeterProvider;
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use tracing_opentelemetry::MetricsLayer;
-use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry};
@@ -89,8 +88,7 @@ impl Telemetry {
             .add_directive("h2=off".parse()?)
             .add_directive("tonic=off".parse()?);
         // !required for stdout
-        let fmt_layer =
-            tracing_subscriber::fmt::layer().with_span_events(FmtSpan::NEW | FmtSpan::CLOSE);
+        let fmt_layer = tracing_subscriber::fmt::layer();
         let tracer = tracer_provider.tracer(self.app_name);
         let tracing_layer = tracing_opentelemetry::layer().with_tracer(tracer);
         let metrics_layer = MetricsLayer::new(meter_provider);
