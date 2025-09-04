@@ -2,7 +2,6 @@
 
 pub mod state;
 
-
 use serde::{Deserialize, Serialize};
 
 /// `Kind` allows serde to serialize/deserialize a string or an object.

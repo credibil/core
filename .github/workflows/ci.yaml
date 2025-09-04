@@ -23,7 +23,7 @@ env:
   RUSTFLAGS: -Dwarnings
 
 jobs:
-  clippy:
+  verify:
     uses: credibil/pipeline/.github/workflows/verify.yaml@main
     # with:
     #   toolchain: stable
