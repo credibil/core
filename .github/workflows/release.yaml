@@ -1,12 +1,9 @@
 name: Release
 
 on:
-  push:
-    paths:
-      - '**/src/**'
-      - '**/tests/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   version:

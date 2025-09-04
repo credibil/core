@@ -27,6 +27,7 @@ serde.workspace = true
 members = ["crates/*"]
 resolver = "3"
 
+
 [workspace.package]
 authors = ["Credibil"]
 description = """
