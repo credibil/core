@@ -7,6 +7,10 @@ on:
 
 jobs:
   version:
-    uses: credibil/pipeline/.github/workflows/release.yaml@main
-    with:
-      version: 1.1.2
+    # uses: credibil/pipeline/.github/workflows/release.yaml@main
+    # with:
+    #   version: 1.1.2
+    name: Set version
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "version 1.1.2"
