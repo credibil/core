@@ -9,8 +9,8 @@ on:
       - 'Cargo.lock'
 
 jobs:
-  verify:
-    uses: credibil/pipeline/.github/workflows/verify.yaml@main
+  version:
+    uses: credibil/pipeline/.github/workflows/version.yaml@main
     # with:
     #   toolchain: stable
     #   target: x86_64-unknown-linux-gnu
