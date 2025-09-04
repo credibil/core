@@ -43,6 +43,7 @@ repository = "https://github.com/credibil/core"
 rust-version = "1.88"
 version = "0.1.1"
 
+
 [workspace.lints.rust]
 missing_docs = "warn"
 unused_extern_crates = "warn"
