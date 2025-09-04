@@ -1,6 +1,5 @@
 //! # Core
 
-
 pub mod state;
 
 use serde::{Deserialize, Serialize};
