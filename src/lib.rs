@@ -4,6 +4,7 @@ pub mod state;
 
 use serde::{Deserialize, Serialize};
 
+
 /// `Kind` allows serde to serialize/deserialize a string or an object.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
