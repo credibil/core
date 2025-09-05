@@ -22,13 +22,13 @@ jobs:
           set -ex
           # Push the current contents of `main` to a new release branch
           cur=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          git push origin HEAD:release-$cur
           echo "Current version: $cur"
           echo "version=$cur\n" >> $GITHUB_OUTPUT
 
       - name: Print current version
         run: |
           echo "Current version: ${{ steps.version.outputs.version }}"
+          # git push origin HEAD:release-${{ steps.version.outputs.version }}
 
     # 1. create release branch
       # - run: git checkout -b <branch-name>
