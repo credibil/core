@@ -1,12 +1,12 @@
 // use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
-use std::process::Command;
 use std::io::{self, Write};
+use std::process::Command;
 
 fn main() {
-    let output = Command::new("cargo-semver-checks")
+    let output = Command::new("cargo")
         .arg("--baseline-rev")
-        // .arg("%(tag)")
         .arg("v0.1.0")
+        // .arg("%(tag)")
         .output()
         .unwrap();
 
