@@ -13,9 +13,9 @@ jobs:
     name: Set version
     runs-on: ubuntu-latest
     steps:
-      - run: echo "version 1.1.2"
+      - uses: actions/checkout@v5
         
-      #  bump current version
+      #  get current version
       - name: Bump version number
         run: |
           set -ex
@@ -23,9 +23,12 @@ jobs:
           cur=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           git push origin HEAD:release-$cur
 
+          echo "Current version: $cur"
+
+
 
     # 1. create release branch
-      - run: git checkout -b <branch-name>
+      # - run: git checkout -b <branch-name>
         # env:
         #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
