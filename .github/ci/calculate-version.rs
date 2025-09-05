@@ -4,6 +4,7 @@ use std::process::Command;
 
 fn main() {
     let output = Command::new("cargo")
+        .arg("semver-checks")
         .arg("--baseline-rev")
         .arg("v0.1.0")
         // .arg("%(tag)")
