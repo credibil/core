@@ -1,5 +1,6 @@
 // use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
 use std::process::Command;
+use std::io::{self, Write};
 
 fn main() {
     let output = Command::new("cargo-semver-checks")
@@ -11,6 +12,9 @@ fn main() {
 
     println!("status: {}", output.status);
     println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+
+    io::stdout().write_all(&output.stdout)?;
+    io::stderr().write_all(&output.stderr)?;
 
     // assert!(output.status.success());
 

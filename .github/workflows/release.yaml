@@ -32,9 +32,8 @@ jobs:
           tool: cargo-semver-checks
       - run: rustc .github/ci/calculate-version.rs
       # - run: rustc .github/ci/calculate-version.rs -o ci/calculate-version
-      - run: |
-          set -ex
-          ./calculate-version
+      - name: Run version calculation
+        run: ./calculate-version
 
       # - uses: taiki-e/install-action@v2
       #   with:
