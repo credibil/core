@@ -4,10 +4,10 @@ pub mod state;
 
 use serde::{Deserialize, Serialize};
 
-/// `Kind` allows serde to serialize/deserialize a string or an object.
+/// `KindX` allows serde to serialize/deserialize a string or an object.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum Kind<T> {
+pub enum KindX<T> {
     /// Simple string value
     String(String),
 
@@ -15,25 +15,25 @@ pub enum Kind<T> {
     Object(T),
 }
 
-impl<T> Default for Kind<T> {
+impl<T> Default for KindX<T> {
     fn default() -> Self {
         Self::String(String::new())
     }
 }
 
-impl<T> From<String> for Kind<T> {
+impl<T> From<String> for KindX<T> {
     fn from(value: String) -> Self {
         Self::String(value)
     }
 }
 
-impl<T> From<&str> for Kind<T> {
+impl<T> From<&str> for KindX<T> {
     fn from(value: &str) -> Self {
         Self::String(value.to_string())
     }
 }
 
-impl<T> Kind<T> {
+impl<T> KindX<T> {
     /// Returns `true` if the quota is a single object.
     pub const fn as_str(&self) -> Option<&str> {
         match self {
