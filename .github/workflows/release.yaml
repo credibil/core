@@ -25,12 +25,9 @@ jobs:
         # semver check
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          baseline-rev: v${{ steps.version.outputs.version }}
 
-      # - uses: taiki-e/install-action@v2
-      #   with:
-      #     tool: cargo-semver-checks
-      # - name: Bump version
-      #   run: cargo semver-checks --baseline-rev v${{ steps.version.outputs.version }}
 
       # bump version using Cargo rules (patch | minor)
       # - uses: taiki-e/install-action@v2
