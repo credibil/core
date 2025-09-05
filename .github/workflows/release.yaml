@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Fetch all history for semver check
+          fetch-depth: 0
         
       - name: Get current version
         id: version
@@ -24,19 +24,21 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-        # semver check
-      - name: Check semver
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          baseline-rev: v${{ steps.version.outputs.version }}
-
-
-      # bump version using Cargo rules (patch | minor)
+      - run: rustc ci/calculate-version.rs
+        
       # - uses: taiki-e/install-action@v2
       #   with:
       #     tool: cargo-release
       # - name: Bump version
-      #   run: cargo release version ${{ inputs.version }} --execute --no-confirm
+      #   run: cargo release version minor --execute --no-confirm
+        # run: cargo release version ${{ steps.version.outputs.version }} --execute --no-confirm
+
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          baseline-rev: v${{ steps.version.outputs.version }}
+          
+          # baseline-root: .
 
       # - name: Create release branch
       #   run: |
