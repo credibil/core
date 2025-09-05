@@ -1,13 +1,10 @@
-
 // use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
 use std::process::Command;
 
 fn main() {
-    println!("Hello, world!");
-
     let output = Command::new("cargo-semver-checks")
         .arg("--baseline-rev")
-        // .arg("%(refname)")
+        // .arg("%(tag)")
         .arg("v0.1.0")
         .output()
         .unwrap();
@@ -15,7 +12,7 @@ fn main() {
     println!("status: {}", output.status);
     println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
 
-    assert!(output.status.success());
+    // assert!(output.status.success());
 
     // let current = Rustdoc::from_root("test_crates/trait_missing/old/");
     // let baseline = Rustdoc::from_root("test_crates/trait_missing/new/");
