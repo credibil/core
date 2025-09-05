@@ -1,6 +1,5 @@
-extern crate cargo_semver_checks;
 
-use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
+// use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
 use std::process::Command;
 
 fn main() {
@@ -15,7 +14,7 @@ fn main() {
 
     println!("status: {}", output.status);
     println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-    
+
     assert!(output.status.success());
 
     // let current = Rustdoc::from_root("test_crates/trait_missing/old/");
