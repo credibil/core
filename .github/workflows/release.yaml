@@ -24,7 +24,7 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - run: rustc .github/ci/calculate-version.rs
+      - run: rustc crates/ci/calculate-version.rs
         
       # - uses: taiki-e/install-action@v2
       #   with:

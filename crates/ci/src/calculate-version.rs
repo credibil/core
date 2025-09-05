@@ -1,5 +1,3 @@
-extern crate cargo_semver_checks;
-
 use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
 use std::process::Command;
 

@@ -1,0 +1,13 @@
+[package]
+name = "credibil-ci"
+edition.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "calculate-version"
+path = "src/calculate-version.rs"
+
+[dependencies]
+cargo-semver-checks = "0.43.0"
