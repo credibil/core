@@ -2,8 +2,8 @@
 name = "credibil-ci"
 edition.workspace = true
 
-[lints]
-workspace = true
+# [lints]
+# workspace = true
 
 [[bin]]
 name = "calculate-version"
