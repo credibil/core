@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
+  # release:
+  #   types: [published]
 
 jobs:
   version:
@@ -14,3 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "version 1.1.2"
+        
+      #  bump current version
+      - name: Bump version number
+        run: |
+          set -ex
+          # Push the current contents of `main` to a new release branch
+          cur=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          git push origin HEAD:release-$cur
+
+
+    # 1. create release branch
+      - run: git checkout -b <branch-name>
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # 2. bump version using Cargo rules (patch | minor)
+    # 3. increment this to next version (e.g. 1.1.2 -> 1.1.3-next)
+    # 4. update Cargo.toml using next version
+    # 5. create candidate changelog/release notes
+    # 6. create draft PR to main branch
+    # 7. on merge, create tag and release
