@@ -15,29 +15,40 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         
-      #  get current version
       - name: Get current version
         id: version
         run: |
           set -ex
-          # Push the current contents of `main` to a new release branch
-          cur=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "Current version: $cur"
-          echo "version=$cur\n" >> $GITHUB_OUTPUT
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Print current version
-        run: |
-          echo "Current version: ${{ steps.version.outputs.version }}"
-          # git push origin HEAD:release-${{ steps.version.outputs.version }}
+        # semver check
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
 
-    # 1. create release branch
-      # - run: git checkout -b <branch-name>
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - uses: taiki-e/install-action@v2
+      #   with:
+      #     tool: cargo-semver-checks
+      # - name: Bump version
+      #   run: cargo semver-checks --baseline-rev v${{ steps.version.outputs.version }}
 
-    # 2. bump version using Cargo rules (patch | minor)
+      # bump version using Cargo rules (patch | minor)
+      # - uses: taiki-e/install-action@v2
+      #   with:
+      #     tool: cargo-release
+      # - name: Bump version
+      #   run: cargo release version ${{ inputs.version }} --execute --no-confirm
+
+      # - name: Create release branch
+      #   run: |
+      #     echo "Current version: ${{ steps.version.outputs.version }}"
+      #     # git push origin HEAD:release-${{ steps.version.outputs.version }}
+      #     # git checkout -b release-${{ steps.version.outputs.version }}
+
+
     # 3. increment this to next version (e.g. 1.1.2 -> 1.1.3-next)
     # 4. update Cargo.toml using next version
+
     # 5. create candidate changelog/release notes
     # 6. create draft PR to main branch
     # 7. on merge, create tag and release
