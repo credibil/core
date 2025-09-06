@@ -16,6 +16,7 @@ on:
   #   types: [published]
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   version:
@@ -95,7 +96,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ci/next-${{ steps.next.outputs.version }}
-          base: main
+          # base: main
           title: Bump to ${{ steps.next.outputs.version }}
           body: |
             This is an [automated pull request][process] from CI which indicates that the next
