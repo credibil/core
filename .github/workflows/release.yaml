@@ -80,7 +80,7 @@ jobs:
       - name: Commit updated main
         run: |
           set -ex
-          # git push origin HEAD:main
+          git push origin HEAD:main
           git commit -am "Bump to ${{ inputs.bump }}"
 
       # - name: Get release version
