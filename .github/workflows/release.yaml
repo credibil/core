@@ -3,8 +3,8 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      level:
-        description: The version level to increment.
+      bump:
+        description: The version bump to make.
         default: minor
         type: choice
         options:
@@ -37,6 +37,19 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      # create release branch from main (main is set to next release version)
+      - name: Create release branch
+        run: |
+          set -ex
+          git push origin HEAD:release-${{ steps.current.outputs.version }}
+          # git checkout -b release-${{ steps.current.outputs.version }}
+
+      # # check semver against previous release
+      # - name: Check semver
+      #   uses: obi1kenobi/cargo-semver-checks-action@v2
+      #   with:
+      #     baseline-rev: v${{ steps.current.outputs.version }}
+
       # # calculate minimum version bump required
       # - uses: taiki-e/install-action@v2
       #   with:
@@ -48,37 +61,33 @@ jobs:
       #     level=$(./target/debug/calculate-version)
       #     echo "level=$level" >> $GITHUB_OUTPUT
 
-      # set committer's git identity
-      - name: Set identity 
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+      # # set committer's git identity
+      # - name: Set identity 
+      #   run: |
+      #     git config user.name "${{ github.actor }}"
+      #     git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      # bump version
+      # bump main to next version
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-release
       - name: Release
-        run: cargo release version ${{ inputs.level }} --execute --no-confirm
-
-      # check semver against previous release
-      - name: Check semver
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          baseline-rev: v${{ steps.current.outputs.version }}
+        run: cargo release version ${{ inputs.bump }} --execute --no-confirm
           
-      - name: Get release version
-        id: release
+      #  commit and push changes to main
+      - name: Commit updated main
         run: |
           set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
+          # git push origin HEAD:main
+          git commit -am "Bump to ${{ inputs.bump }}"
 
-      - name: Create release branch
-        run: |
-          echo "Release version: ${{ steps.release.outputs.version }}"
-          git push origin HEAD:release-${{ steps.release.outputs.version }}
-          git checkout -b release-${{ steps.release.outputs.version }}
+      # - name: Get release version
+      #   id: release
+      #   run: |
+      #     set -ex
+      #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+      #     echo "version=$version" >> $GITHUB_OUTPUT
+
 
 
     # 5. create candidate changelog/release notes
