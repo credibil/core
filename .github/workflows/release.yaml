@@ -32,6 +32,7 @@ jobs:
           tool: cargo-semver-checks
       - run: cargo build --manifest-path crates/ci/Cargo.toml
       - name: Run version calculation
+        id: bump
         run: |
           level=$()./target/debug/calculate-version)
           echo "level=$level" >> $GITHUB_OUTPUT
@@ -39,7 +40,7 @@ jobs:
       - name: Show version info
         run: |
           echo "Current version: ${{ steps.version.outputs.version }}"
-          echo "Required bump: ${{ steps.version.outputs.level }}"
+          echo "Required bump: ${{ steps.bump.outputs.level }}"
 
       # - uses: taiki-e/install-action@v2
       #   with:
