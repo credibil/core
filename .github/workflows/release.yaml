@@ -26,25 +26,33 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-     
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-semver-checks
-      - run: rustc .github/ci/calculate-version.rs
-      # - run: rustc .github/ci/calculate-version.rs -o ci/calculate-version
-      - name: Run version calculation
-        run: ./calculate-version
-
       # - uses: taiki-e/install-action@v2
       #   with:
-      #     tool: cargo-release
+      #     tool: cargo-semver-checks
+      # - run: rustc .github/ci/calculate-version.rs
+      # - name: Run version calculation
+      #   run: ./calculate-version
 
-      # - name: Check semver
-      #   uses: obi1kenobi/cargo-semver-checks-action@v2
-      #   with:
-      #     baseline-rev: v${{ steps.version.outputs.version }}
+      - run: |
+          cargo build --manifest-path crates/ci/Cargo.toml
+          ./target/debug/calculate-version
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-release
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-release
+      - name: Release
+        run: cargo release minor --execute --no-confirm
+        
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          baseline-rev: v${{ steps.version.outputs.version }}
           
-          # baseline-root: .
+   
 
       # - name: Create release branch
       #   run: |

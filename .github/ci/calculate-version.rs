@@ -1,4 +1,6 @@
-// use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
+extern crate cargo_semver_checks;
+
+use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
 use std::io::{self, Write};
 use std::process::Command;
 

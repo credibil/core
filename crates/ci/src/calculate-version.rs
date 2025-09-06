@@ -1,22 +1,13 @@
 extern crate cargo_semver_checks;
 
 use cargo_semver_checks::{ActualSemverUpdate, Check, GlobalConfig, ReleaseType, Rustdoc};
-use std::process::Command;
 
 fn main() {
     println!("Hello, world!");
 
-    let output = Command::new("git")
-        .arg("for-each-ref")
-        .arg("refs/remotes/origin")
-        .arg("--format")
-        .arg("%(refname)")
-        .output()
-        .unwrap();
-    assert!(output.status.success());
-
-    let current = Rustdoc::from_root("test_crates/trait_missing/old/");
-    let baseline = Rustdoc::from_root("test_crates/trait_missing/new/");
+    // let current = Rustdoc::from_root("test_crates/trait_missing/old/");
+    let current = Rustdoc::from_git_revision(".", "v0.1.0");
+    let baseline = Rustdoc::from_root(".");
     let mut config = GlobalConfig::new();
     let mut check = Check::new(current);
     let check = check.set_baseline(baseline);
