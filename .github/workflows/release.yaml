@@ -14,6 +14,7 @@ on:
 
   # release:
   #   types: [published]
+
 permissions:
   contents: write
   pull-requests: write
@@ -49,7 +50,6 @@ jobs:
         run: |
           set -ex
           git push origin HEAD:release-${{ steps.current.outputs.version }}
-          # git checkout -b release-${{ steps.current.outputs.version }}
 
       # # check semver against previous release
       # - name: Check semver
@@ -99,21 +99,14 @@ jobs:
           # base: main
           title: Bump to ${{ steps.next.outputs.version }}
           body: |
-            This is an [automated pull request][process] from CI which indicates that the next
-            [\`release-$cur\` branch][branch] has been created and the \`main\` branch is getting
-            its version number bumped from $cur to $num.
+            This is an [automated pull request][process] indicating a new [release-${{ steps.current.outputs.version }} branch][branch] has been created and the `main` branch is getting its version number bumped from ${{ steps.current.outputs.version }} to ${{ steps.next.outputs.version }}.
 
-            Maintainers should take a moment to review the [release notes][RELEASES.md] for $cur 
-            and any updates should be made directly to the [release branch][branch].
+            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.current.outputs.version }} and make updates directly to the [release branch][branch].
 
-            Another automated PR will be made in roughly 2 weeks time when for the actual release
-            itself.
+            If any issues arise on the `main` branch before the release is made then the issue should first be fixed on `main` and then backport to the `release-${{ steps.current.outputs.version }}` branch.
 
-            If any issues arise on the \`main\` branch before the release is made then the issue
-            should first be fixed on \`main\` and then backport to the \`release-$cur\` branch.
-
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-$cur/RELEASES.md
-            [branch]: https://github.com/${{ github.repository }}/tree/release-$cur
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md
+            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.current.outputs.version }}
             [process]: https://docs.wasmtime.dev/contributing-release-process.html
 
     # 5. create candidate changelog/release notes
