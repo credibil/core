@@ -38,6 +38,7 @@ jobs:
       #     level=$(./target/debug/calculate-version)
       #     echo "level=$level" >> $GITHUB_OUTPUT
 
+      # set committer's git identity
       - name: Set identity 
         run: |
           git config user.name "${{ github.actor }}"
