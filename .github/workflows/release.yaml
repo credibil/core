@@ -21,7 +21,7 @@ jobs:
       
       # get current version
       - name: Get current version
-        id: version
+        id: current
         run: |
           set -ex
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
@@ -49,21 +49,26 @@ jobs:
         with:
           tool: cargo-release
       - name: Release
-        run: cargo release major --execute --no-confirm --no-publish
+        run: cargo release version minor --execute --no-confirm
       
       # check semver against previous tag
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
         with:
-          baseline-rev: v${{ steps.version.outputs.version }}
+          baseline-rev: v${{ steps.current.outputs.version }}
           
-   
+      - name: Get release version
+        id: release
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-      # - name: Create release branch
-      #   run: |
-      #     echo "Current version: ${{ steps.version.outputs.version }}"
-      #     # git push origin HEAD:release-${{ steps.version.outputs.version }}
-      #     # git checkout -b release-${{ steps.version.outputs.version }}
+      - name: Create release branch
+        run: |
+          echo "Current version: ${{ steps.release.outputs.version }}"
+          # git push origin HEAD:release-${{ steps.current.outputs.version }}
+          # git checkout -b release-${{ steps.current.outputs.version }}
 
 
     # 3. increment this to next version (e.g. 1.1.2 -> 1.1.3-next)
