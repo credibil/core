@@ -18,7 +18,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-        
+      
+      # get current version
       - name: Get current version
         id: version
         run: |
@@ -26,32 +27,29 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      # calculate next version
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-semver-checks
-      - run: cargo build --manifest-path crates/ci/Cargo.toml
-      - name: Run version calculation
-        id: bump
-        run: |
-          level=$(./target/debug/calculate-version)
-          echo "level=$level" >> $GITHUB_OUTPUT
-
-      - name: Show version info
-        run: |
-          echo "Current version: ${{ steps.version.outputs.version }}"
-          echo "Required bump: ${{ steps.bump.outputs.level }}"
-
+      # # calculate minimum version bump required
       # - uses: taiki-e/install-action@v2
       #   with:
-      #     tool: cargo-release
-      # - name: Release
-      #   run: cargo release minor --execute --no-confirm
-        
-      # - name: Check semver
-      #   uses: obi1kenobi/cargo-semver-checks-action@v2
-      #   with:
-      #     baseline-rev: v${{ steps.version.outputs.version }}
+      #     tool: cargo-semver-checks
+      # - run: cargo build --manifest-path crates/ci/Cargo.toml
+      # - name: Calculate version bump
+      #   id: bump
+      #   run: |
+      #     level=$(./target/debug/calculate-version)
+      #     echo "level=$level" >> $GITHUB_OUTPUT
+
+      # bump version
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-release
+      - name: Release
+        run: cargo release minor --execute --no-confirm
+      
+      # check semver against previous tag
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          baseline-rev: v${{ steps.version.outputs.version }}
           
    
 
