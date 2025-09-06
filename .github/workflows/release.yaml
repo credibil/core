@@ -38,12 +38,17 @@ jobs:
       #     level=$(./target/debug/calculate-version)
       #     echo "level=$level" >> $GITHUB_OUTPUT
 
+      - name: Set identity 
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
       # bump version
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-release
       - name: Release
-        run: cargo release minor --execute --no-confirm
+        run: cargo release major --execute --no-confirm
       
       # check semver against previous tag
       - name: Check semver
