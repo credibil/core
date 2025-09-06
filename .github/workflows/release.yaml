@@ -83,21 +83,37 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      # Push next version to a branch and create a PR
-      - name: Commit updated main
+      # push next version to a branch and create a PR
+      - name: Branch to update main
         run: |
           set -ex
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
-      # - name: Get release version
-      #   id: release
-      #   run: |
-      #     set -ex
-      #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-      #     echo "version=$version" >> $GITHUB_OUTPUT
+      # - name: Make PR
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ci/next-${{ steps.next.outputs.version }}
+          base: main
+          title: Bump to ${{ steps.next.outputs.version }}
+          body: |
+            This is an [automated pull request][process] from CI which indicates that the next
+            [\`release-$cur\` branch][branch] has been created and the \`main\` branch is getting
+            its version number bumped from $cur to $num.
 
+            Maintainers should take a moment to review the [release notes][RELEASES.md] for $cur 
+            and any updates should be made directly to the [release branch][branch].
 
+            Another automated PR will be made in roughly 2 weeks time when for the actual release
+            itself.
+
+            If any issues arise on the \`main\` branch before the release is made then the issue
+            should first be fixed on \`main\` and then backport to the \`release-$cur\` branch.
+
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-$cur/RELEASES.md
+            [branch]: https://github.com/${{ github.repository }}/tree/release-$cur
+            [process]: https://docs.wasmtime.dev/contributing-release-process.html
 
     # 5. create candidate changelog/release notes
     # 6. create draft PR to main branch
