@@ -76,12 +76,19 @@ jobs:
       - name: Release
         run: cargo release version ${{ inputs.bump }} --execute --no-confirm
           
-      #  commit and push changes to main
+      - name: Get next version
+        id: next
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      # Push next version to a branch and create a PR
       - name: Commit updated main
         run: |
           set -ex
-          git commit -am "Bump to ${{ inputs.bump }}"
-          git push origin HEAD:main
+          git commit -am "Bump to ${{ steps.next.outputs.version }}"
+          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
       # - name: Get release version
       #   id: release
