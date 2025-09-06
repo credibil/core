@@ -26,31 +26,31 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      # calculate next version
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-semver-checks
+      - run: cargo build --manifest-path crates/ci/Cargo.toml
+      - name: Run version calculation
+        run: |
+          level=$()./target/debug/calculate-version)
+          echo "level=$level" >> $GITHUB_OUTPUT
+
+      - name: Show version info
+        run: |
+          echo "Current version: ${{ steps.version.outputs.version }}"
+          echo "Required bump: ${{ steps.version.outputs.level }}"
+
       # - uses: taiki-e/install-action@v2
       #   with:
-      #     tool: cargo-semver-checks
-      # - run: rustc .github/ci/calculate-version.rs
-      # - name: Run version calculation
-      #   run: ./calculate-version
-
-      - run: |
-          cargo build --manifest-path crates/ci/Cargo.toml
-          ./target/debug/calculate-version
-
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-release
-
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-release
-      - name: Release
-        run: cargo release minor --execute --no-confirm
+      #     tool: cargo-release
+      # - name: Release
+      #   run: cargo release minor --execute --no-confirm
         
-      - name: Check semver
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          baseline-rev: v${{ steps.version.outputs.version }}
+      # - name: Check semver
+      #   uses: obi1kenobi/cargo-semver-checks-action@v2
+      #   with:
+      #     baseline-rev: v${{ steps.version.outputs.version }}
           
    
 
