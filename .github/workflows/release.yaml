@@ -2,6 +2,16 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      level:
+        description: The version level to increment.
+        default: minor
+        type: choice
+        options:
+        - major
+        - minor
+        - patch
+
   # release:
   #   types: [published]
 permissions:
@@ -49,8 +59,8 @@ jobs:
         with:
           tool: cargo-release
       - name: Release
-        run: cargo release version minor --execute --no-confirm
-      
+        run: cargo release version ${{ inputs.level }} --execute --no-confirm
+
       # check semver against previous release
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
