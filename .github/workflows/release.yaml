@@ -34,7 +34,7 @@ jobs:
       - name: Run version calculation
         id: bump
         run: |
-          level=$()./target/debug/calculate-version)
+          level=$(./target/debug/calculate-version)
           echo "level=$level" >> $GITHUB_OUTPUT
 
       - name: Show version info
