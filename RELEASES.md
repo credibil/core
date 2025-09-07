@@ -8,7 +8,7 @@ Unreleased.
 
 --------------------------------------------------------------------------------
 
-Release notes for previous releases of Wasmtime can be found on the respective
-release branches of the Wasmtime repository.
+Release notes for previous releases can be found on the respective release 
+branches of the repository.
 
 <!-- ARCHIVE_START -->
