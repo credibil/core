@@ -43,7 +43,7 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      # create release branch from main (main is already set to next release version)
+      # create release branch from main (already set to next version)
       - name: Create release branch
         run: |
           set -ex
@@ -78,9 +78,10 @@ jobs:
           cat backup-releases >> RELEASES.md
           rm backup-releases
 
-          # git add RELEASES.md
-          # git commit -m "Add initial release notes for ${{ steps.current.outputs.version }}"
-          # git push origin HEAD:release-${{ steps.current.outputs.version }}
+          # push changes to release branch
+          git add RELEASES.md
+          git commit -m "Add initial release notes for ${{ steps.current.outputs.version }}"
+          git push origin HEAD:release-${{ steps.current.outputs.version }}
 
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
