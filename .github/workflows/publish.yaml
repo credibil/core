@@ -26,21 +26,15 @@ on:
 jobs:
   push-tag:
     runs-on: ubuntu-latest
-    if: ${{ github.event.head_commit.message }} contains '[tag-and-release]'
-    # needs: ci-status
-    # if: |
-    #   always()
-    #   && needs.ci-status.result == 'success'
-    #   && github.event_name == 'push'
-    #   && startsWith(github.ref, 'refs/heads/release-')
-    #   && github.repository == 'credibil/core'
+    # if: ${{ github.event.head_commit.message }} contains '[tag-and-release]'
     
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - run: echo "Checked out ref $GITHUB_REF"
+      - run: |
+          echo "message: ${{ github.event.head_commit.message }}"
 
       # - name: Test if tag is needed
       #   id: tag
