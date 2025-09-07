@@ -28,7 +28,6 @@ runs:
       run: |
         set -ex
         sed -i '0,/-----------/d' RELEASES.md
-
         archive=$(cat RELEASES.md)
 
         cat > RELEASES.md <<EOF
@@ -44,6 +43,6 @@ runs:
         $archive
         EOF
 
-        git add RELEASES.md
-        git commit -m "Update release notes for ${{ inputs.next-version }}"
+        # git add RELEASES.md
+        git commit -am "Update release notes for ${{ inputs.next-version }}"
         git push origin HEAD:ci/next-${{ inputs.next-version }}
