@@ -15,18 +15,17 @@
 # artifacts and then publish them to the tag.
 
 on:
-  # Run CI for PRs to `main` and to release branches.
-  #
-  # Note that PRs to `main` will run a subset of tests and PRs to the
-  # `release-*` branches will run full CI.
+  push:
+    branches:
+    - 'release-*'
   pull_request:
     branches:
-    # - main
     - 'release-*'
 
 jobs:
   push-tag:
     runs-on: ubuntu-latest
+    if: ${{ github.event.head_commit.message }} contains 'tag-and-release'
     # needs: ci-status
     # if: |
     #   always()
@@ -40,32 +39,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Test if tag is needed
-        id: tag
-        run: |
-          git log ${{ github.event.before }}...${{ github.event.after }} | tee main.log
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version: $version"
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          if grep -q "tag-and-release" main.log; then
-            echo push-tag
-            echo "push_tag=yes" >> $GITHUB_OUTPUT
-          else
-            echo no-push-tag
-            echo "push_tag=no" >> $GITHUB_OUTPUT
-          fi
+      - run: echo "Checked out ref $GITHUB_REF"
+
+      # - name: Test if tag is needed
+      #   id: tag
+      #   run: |
+      #     git log ${{ github.event.before }}...${{ github.event.after }} | tee main.log
+      #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+      #     echo "version: $version"
+      #     echo "version=$version" >> $GITHUB_OUTPUT
+      #     echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      #     if grep -q "tag-and-release" main.log; then
+      #       echo push-tag
+      #       echo "push_tag=yes" >> $GITHUB_OUTPUT
+      #     else
+      #       echo no-push-tag
+      #       echo "push_tag=no" >> $GITHUB_OUTPUT
+      #     fi
           
 
-      - name: Push the tag
-        run: |
-          git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
-          curl -iX POST $git_refs_url \
-            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-            -d @- << EOF
-          {
-            "ref": "refs/tags/v${{ steps.tag.outputs.version }}",
-            "sha": "${{ steps.tag.outputs.sha }}"
-          }
-          EOF
-          if: steps.tag.outputs.push_tag == 'yes'
+      # - name: Push the tag
+      #   run: |
+      #     git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
+      #     curl -iX POST $git_refs_url \
+      #       -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+      #       -d @- << EOF
+      #     {
+      #       "ref": "refs/tags/v${{ steps.tag.outputs.version }}",
+      #       "sha": "${{ steps.tag.outputs.sha }}"
+      #     }
+      #     EOF
+      #     if: steps.tag.outputs.push_tag == 'yes'

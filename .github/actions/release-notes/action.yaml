@@ -2,11 +2,11 @@ name: Prepare release notes
 description: Prepare release notes for the upcoming release
 
 inputs:
-  next-version:
-    description: The version to use to create release notes.
-    required: true
   release-version:
     description: The version of the release to archive.
+    required: true
+  next-version:
+    description: The version to use to create release notes.
     required: true
 
 runs:

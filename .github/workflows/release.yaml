@@ -72,43 +72,12 @@ jobs:
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
+      # update release notes for the next release
       - uses: ./.github/actions/release-notes
         with:
-          next-version: ${{ steps.next.outputs.version }}
           release-version: ${{ steps.release.outputs.version }}
+          next-version: ${{ steps.next.outputs.version }}
 
-      # # archive release notes:
-      # # - [d]elete previous release notes
-      # # - [a]dd current version to the list of archived versions
-      # - name: Archive previous releases
-      #   run: |
-      #     set -ex
-      #     sed -i '0,/-----------/d' RELEASES.md
-      #     version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
-      #     sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
-
-      #   # update main release notes for next release
-      # - name: Update 'main' release notes
-      #   run: |
-      #     set -ex
-      #     archive=$(cat RELEASES.md)
-      #     cat > RELEASES.md <<EOF
-      #     ## ${{ steps.next.outputs.version }}
-
-      #     Unreleased
-
-      #     ### Added
-
-      #     ### Changed
-
-      #     --------------------------------------------------------------------------------
-      #     $archive
-      #     EOF
-
-      #     git add RELEASES.md
-      #     git commit -m "Update release notes for ${{ steps.next.outputs.version }}"
-      #     git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
-          
       # create PR to update main version
       - name: Create PR for 'main' version branch
         uses: peter-evans/create-pull-request@v7
@@ -122,7 +91,7 @@ jobs:
 
             Maintainers should review the [release notes][RELEASES.md] for ${{ steps.release.outputs.version }} and make updates directly to the [release branch][branch].
 
-            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ steps.current.outputs.version }}` branch.
+            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ steps.release.outputs.version }}` branch.
 
             [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md
             [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.release.outputs.version }}
@@ -142,14 +111,8 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      - name: Latest release branch
+      - uses: ./.github/actions/latest-release
         id: latest
-        run: |
-          set -ex
-          git fetch origin
-          rustc .github/scripts/release-branch.rs -o /tmp/release-branch
-          version=`/tmp/release-branch`
-          echo "branch=release-$version" >> $GITHUB_OUTPUT
 
       # Move to the latest release branch, update the release date and commit.
       # `[tag-and-release]` in the commit message triggers the publish workflow.
@@ -157,27 +120,28 @@ jobs:
         run: |
           set -ex
           git reset --hard origin/${{ steps.latest.outputs.branch }}
-          # sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
+          sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
           git commit --allow-empty -a -F-<<EOF
           Release ${{ steps.latest.outputs.branch }}
           [tag-and-release]
           EOF
 
-          git push origin HEAD:ci/${{ steps.latest.outputs.branch }}
+          # git push origin HEAD:ci/${{ steps.latest.outputs.branch }}
 
-      - name: Create PR for release
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: ci/${{ steps.latest.outputs.branch }}
-          title: Release core ${{ steps.latest.outputs.branch }}
-          body: |
-            This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
+      # # PR to trigger tag creation and the actual release 
+      # - name: Create release PR
+      #   uses: peter-evans/create-pull-request@v7
+      #   with:
+      #     branch: ci/${{ steps.latest.outputs.branch }}
+      #     title: Release core ${{ steps.latest.outputs.branch }}
+      #     body: |
+      #       This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
 
-            It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
+      #       It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
 
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
-            [process]: https://docs.wasmtime.dev/contributing-release-process.html
-            [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
+      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
+      #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
+      #       [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
 
   release-patch:
     if: ${{ inputs.action == 'patch' }}
