@@ -1,4 +1,5 @@
-    
+name: Publish
+
 # The purpose of this job is to watch `release-*` branches for the term 
 # "automatically-tag-and-release-this-commit" within merged PRs/commits. Once
 # that term is found the current version of `Cargo.toml` is used to create a

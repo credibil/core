@@ -126,7 +126,11 @@ jobs:
           [tag-and-release]
           EOF
 
+          git push origin HEAD:${{ steps.latest.outputs.branch }}
           # git push origin HEAD:ci/${{ steps.latest.outputs.branch }}
+        # git add RELEASES.md
+        # git commit -m "Update release notes for ${{ inputs.next-version }}"
+        # git push origin HEAD:ci/next-${{ inputs.next-version }}
 
       # # PR to trigger tag creation and the actual release 
       # - name: Create release PR
