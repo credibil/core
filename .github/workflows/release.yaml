@@ -5,10 +5,7 @@ on:
     inputs:
       action:
         description: |
-          The release action to take:
-          - `create`: Create a new release branch from `main`
-          - `release`: Release the latest version
-          - `patch`: Releases a patch for a previously released version.
+          The release action to take.
         default: create
         type: choice
         options:
