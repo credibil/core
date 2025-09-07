@@ -130,7 +130,8 @@ jobs:
 
           git add RELEASES.md
           git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
-          git push origin HEAD:${{ steps.latest.outputs.branch }}
+          # git push origin HEAD:${{ steps.latest.outputs.branch }}
+          git push 
 
       # # PR to trigger tag creation and the actual release 
       # - name: Create release PR
