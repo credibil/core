@@ -108,55 +108,36 @@ jobs:
           version=`/tmp/release-branch`
           echo "branch=release-$version" >> $GITHUB_OUTPUT
 
-      # - name: Latest release
-      #   id: latest
-      #   run: |
-      #     set -ex
-      #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-      #     echo "version=$version" >> $GITHUB_OUTPUT
+      # - run: echo "Latest release is ${{ steps.latest.outputs.branch }}"
 
-      # - name: Get Latest Tag
-      #   id: latest
-      #   run: |
-      #     latest_tag=$(git tag | sort --version-sort | tail -n1)
-      #     echo "tag=$latest_tag" >> $GITHUB_OUTPUT
+      # Move to the latest release branch, update the release date and
+      # commit it, indicating that the commit is what will get tagged and
+      # released
+      - name: Release
+        run: |
+          set -ex
+          git reset --hard origin/release-$version
+          # sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
+          git commit --allow-empty -a -F-<<EOF
+          Release ${{ steps.latest.outputs.branch }}
+          [automatically-tag-and-release-this-commit]
+          EOF
 
-      - run: echo "Latest release is ${{ steps.latest.outputs.branch }}"
-
-      # - name: Release latest
-      #   run: |
-      #     set -ex
-      #     git fetch origin
-
-      #     # Determine the latest release branch
-      #     rustc ci/find-latest-release.rs -o /tmp/find-latest-release
-      #     cur=`/tmp/find-latest-release`
-
-      #     # Move to the most recent release branch, update the release date and
-      #     # commit it, indicating that the commit is what will get tagged and
-      #     # released
-      #     git reset --hard origin/release-$cur
-      #     git submodule update --init --recursive
-      #     sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
-      #     git commit --allow-empty -a -F-<<EOF
-      #     Release Wasmtime $cur
-
-      #     [automatically-tag-and-release-this-commit]
-      #     EOF
+          git push origin HEAD:ci/${{ steps.latest.outputs.branch }}
 
       # - name: Create PR for release branch
       #   uses: peter-evans/create-pull-request@v7
       #   with:
-      #     branch: ci/release-${{ steps.latest.outputs.version }}
-      #     title: Release core ${{ steps.latest.outputs.version }}
+      #     branch: ci/${{ steps.latest.outputs.branch }}
+      #     title: Release core ${{ steps.latest.outputs.branch }}
       #     body: |
       #       This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
 
       #       It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
 
-      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.latest.outputs.version }}/RELEASES.md
+      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
       #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
-      #       [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.latest.outputs.version }}
+      #       [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
 
   release-patch:
     if: ${{ inputs.action == 'patch' }}
