@@ -15,15 +15,17 @@ name: Publish
 # this workflow as the `publish-artifacts.yml` workflow will download these
 # artifacts and then publish them to the tag.
 
+# if: ${{ github.event.head_commit.message }} contains '[tag-and-release]'
+
 on:
   push:
     branches:
-    - 'release-**'
+    - 'release-0.2.0'
 
 jobs:
   push-tag:
     runs-on: ubuntu-latest
-    # if: ${{ github.event.head_commit.message }} contains '[tag-and-release]'
+    
     
     steps:
       - uses: actions/checkout@v5
