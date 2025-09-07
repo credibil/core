@@ -123,15 +123,13 @@ jobs:
           # sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
           sed -i "s/^Unreleased/Released $(date +'%s')/" RELEASES.md
 
-          # git commit --allow-empty -a -F-<<EOF
-          # Release ${{ steps.latest.outputs.branch }}
-          # [tag-and-release]
-          # EOF
-
-          git add RELEASES.md
-          git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
-          # git push origin HEAD:${{ steps.latest.outputs.branch }}
-          git push 
+          git commit --allow-empty -a -F-<<EOF
+          Release ${{ steps.latest.outputs.branch }}
+          [tag-and-release]
+          EOF
+          
+          # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
+          git push origin HEAD:${{ steps.latest.outputs.branch }}
 
       # # PR to trigger tag creation and the actual release 
       # - name: Create release PR
