@@ -29,20 +29,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
-      # set committer's git identity
-      - name: Set identity 
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
       
       # get current version
-      - name: Get current version
+      - name: Current version
         id: current
         run: |
           set -ex
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
+
+      # set committer's git identity
+      - name: Git identity 
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
       # create release branch from main (main is already set to next release version)
       - name: Create release branch
@@ -50,14 +50,16 @@ jobs:
           set -ex
           git push origin HEAD:release-${{ steps.current.outputs.version }}
 
-      # bump main to next (minor) version
-      - uses: taiki-e/install-action@v2
+      - name: Install cargo-release
+        uses: taiki-e/install-action@v2
         with:
           tool: cargo-release
-      - name: Release
+
+      # bump main to next version
+      - name: Bump 'main' version
         run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
 
-      - name: Get next version
+      - name: Next version
         id: next
         run: |
           set -ex
@@ -65,14 +67,14 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       # push next version to a branch and create a PR
-      - name: Branch to update main
+      - name: Create branch to update 'main' version
         run: |
           set -ex
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
       # create PR to update main version
-      - name: Create Pull Request
+      - name: Create PR for 'main' version branch
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ci/next-${{ steps.next.outputs.version }}
