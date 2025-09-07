@@ -99,6 +99,12 @@ jobs:
         with:
           fetch-depth: 0
         
+      # set committer's git identity
+      - name: Set git identity
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          
       - name: Latest release branch
         id: latest
         run: |
