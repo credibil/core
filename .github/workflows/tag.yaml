@@ -1,0 +1,71 @@
+    
+# The purpose of this job is to watch `release-*` branches for the term 
+# "automatically-tag-and-release-this-commit" within merged PRs/commits. Once
+# that term is found the current version of `Cargo.toml` is used to create a
+# tag and the tag is pushed to the repo.
+# 
+# Currently the tag is created through the GitHub API with an access token to
+# ensure that CI is further triggered for the tag itself which performs the
+# full release process.
+#
+# Note that this depends on the `ci-status` step above which is the "join"
+# point of this workflow for when everything succeeds. the purpose of that is
+# so that the tag is only created after the aftifacts have been uploaded for
+# this workflow as the `publish-artifacts.yml` workflow will download these
+# artifacts and then publish them to the tag.
+
+on:
+  # Run CI for PRs to `main` and to release branches.
+  #
+  # Note that PRs to `main` will run a subset of tests and PRs to the
+  # `release-*` branches will run full CI.
+  pull_request:
+    branches:
+    # - main
+    - 'release-*'
+
+jobs:
+  push-tag:
+    runs-on: ubuntu-latest
+    # needs: ci-status
+    # if: |
+    #   always()
+    #   && needs.ci-status.result == 'success'
+    #   && github.event_name == 'push'
+    #   && startsWith(github.ref, 'refs/heads/release-')
+    #   && github.repository == 'credibil/core'
+    
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Test if tag is needed
+        id: tag
+        run: |
+          git log ${{ github.event.before }}...${{ github.event.after }} | tee main.log
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version: $version"
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          if grep -q "automatically-tag-and-release-this-commit" main.log; then
+            echo push-tag
+            echo "push_tag=yes" >> $GITHUB_OUTPUT
+          else
+            echo no-push-tag
+            echo "push_tag=no" >> $GITHUB_OUTPUT
+          fi
+          
+
+      - name: Push the tag
+        run: |
+          git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
+          curl -iX POST $git_refs_url \
+            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+            -d @- << EOF
+          {
+            "ref": "refs/tags/v${{ steps.tag.outputs.version }}",
+            "sha": "${{ steps.tag.outputs.sha }}"
+          }
+          EOF
+          if: steps.tag.outputs.push_tag == 'yes'

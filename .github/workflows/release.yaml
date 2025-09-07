@@ -3,33 +3,35 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      bump:
-        description: The version bump to make.
-        default: minor
+      action:
+        description: |
+          The release action to take:
+          - `create`: Create a new release branch from `main`
+          - `release`: Release the latest version
+          - `patch`: Releases a patch for a previously released version.
+        default: create
         type: choice
         options:
-        - major
-        - minor
+        - create
+        - release
         - patch
 
-  # release:
-  #   types: [published]
+env:
+  # The type of version bump to perform when cutting a release
+  # N.B Cargo version rules allow "minor" for breaking changes while on 0.x.y 
+  BUMP_TYPE: minor
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  version:
-    # uses: credibil/pipeline/.github/workflows/release.yaml@main
-    # with:
-    #   version: 1.1.2
-    name: Set version
+  create-branch:
+    if: ${{ inputs.action == 'create' }}
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       # set committer's git identity
       - name: Set identity 
@@ -45,12 +47,65 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      # create release branch from main (main is set to next release version)
+      # create release branch from main (main is already set to next release version)
       - name: Create release branch
         run: |
           set -ex
           git push origin HEAD:release-${{ steps.current.outputs.version }}
 
+      # bump main to next (minor) version
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-release
+      - name: Release
+        run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
+
+      - name: Get next version
+        id: next
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      # push next version to a branch and create a PR
+      - name: Branch to update main
+        run: |
+          set -ex
+          git commit -am "Bump to ${{ steps.next.outputs.version }}"
+          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+
+      # create PR to update main version
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ci/next-${{ steps.next.outputs.version }}
+          title: Bump to ${{ steps.next.outputs.version }}
+          body: |
+            This pull request has been triggered by the creation of a new [release branch][branch]. 
+            
+            Specifically, it merges the new version number (bumped from ${{ steps.current.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
+
+            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.current.outputs.version }} and make updates directly to the [release branch][branch].
+
+            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ steps.current.outputs.version }}` branch.
+
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md
+            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.current.outputs.version }}
+
+  release-latest:
+    if: ${{ inputs.action == 'release' }}
+    name: Release latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        
+  release-patch:
+    if: ${{ inputs.action == 'patch' }}
+    name: Release patch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        
       # # check semver against previous release
       # - name: Check semver
       #   uses: obi1kenobi/cargo-semver-checks-action@v2
@@ -67,48 +122,3 @@ jobs:
       #   run: |
       #     level=$(./target/debug/calculate-version)
       #     echo "level=$level" >> $GITHUB_OUTPUT
-
-
-
-      # bump main to next version
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-release
-      - name: Release
-        run: cargo release version ${{ inputs.bump }} --execute --no-confirm
-          
-      - name: Get next version
-        id: next
-        run: |
-          set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
-
-      # push next version to a branch and create a PR
-      - name: Branch to update main
-        run: |
-          set -ex
-          git commit -am "Bump to ${{ steps.next.outputs.version }}"
-          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
-
-      # - name: Make PR
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: ci/next-${{ steps.next.outputs.version }}
-          # base: main
-          title: Bump to ${{ steps.next.outputs.version }}
-          body: |
-            This is an [automated pull request][process] indicating a new [release-${{ steps.current.outputs.version }} branch][branch] has been created and the `main` branch is getting its version number bumped from ${{ steps.current.outputs.version }} to ${{ steps.next.outputs.version }}.
-
-            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.current.outputs.version }} and make updates directly to the [release branch][branch].
-
-            If any issues arise on the `main` branch before the release is made then the issue should first be fixed on `main` and then backport to the `release-${{ steps.current.outputs.version }}` branch.
-
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md
-            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.current.outputs.version }}
-            [process]: https://docs.wasmtime.dev/contributing-release-process.html
-
-    # 5. create candidate changelog/release notes
-    # 6. create draft PR to main branch
-    # 7. on merge, create tag and release
