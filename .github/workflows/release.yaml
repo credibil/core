@@ -104,7 +104,7 @@ jobs:
         run: |
           set -ex
           git fetch origin
-          rustc .github/ci/release-branch.rs -o /tmp/release-branch
+          rustc .github/scripts/release-branch.rs -o /tmp/release-branch
           version=`/tmp/release-branch`
           echo "branch=release-$version" >> $GITHUB_OUTPUT
 
