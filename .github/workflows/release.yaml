@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: |
-          The release action to take.
+        description: The release action to take.
         default: create
         type: choice
         options:
-        - create
-        - release
-        - patch
+          - create
+          - release
+          - patch
 
 env:
   # The type of version bump to perform when cutting a release
@@ -39,7 +38,7 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       # set committer's git identity
-      - name: Git identity 
+      - name: Set git identity
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
@@ -59,7 +58,7 @@ jobs:
       - name: Bump 'main' version
         run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
 
-      - name: Next version
+      - name: Get 'main' version
         id: next
         run: |
           set -ex
@@ -98,6 +97,53 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         
+      # - name: Latest release
+      #   id: latest
+      #   run: |
+      #     set -ex
+      #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+      #     echo "version=$version" >> $GITHUB_OUTPUT
+      - name: Get Latest Release
+        uses: pozetroninc/github-action-get-latest-release@v0.8.0
+        id: latest
+
+      - run: echo "Latest release is ${{ steps.latest.outputs.release }}"
+
+      # - name: Release latest
+      #   run: |
+      #     set -ex
+      #     git fetch origin
+
+      #     # Determine the latest release branch
+      #     rustc ci/find-latest-release.rs -o /tmp/find-latest-release
+      #     cur=`/tmp/find-latest-release`
+
+      #     # Move to the most recent release branch, update the release date and
+      #     # commit it, indicating that the commit is what will get tagged and
+      #     # released
+      #     git reset --hard origin/release-$cur
+      #     git submodule update --init --recursive
+      #     sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
+      #     git commit --allow-empty -a -F-<<EOF
+      #     Release Wasmtime $cur
+
+      #     [automatically-tag-and-release-this-commit]
+      #     EOF
+
+      # - name: Create PR for release branch
+      #   uses: peter-evans/create-pull-request@v7
+      #   with:
+      #     branch: ci/release-${{ steps.latest.outputs.version }}
+      #     title: Release core ${{ steps.latest.outputs.version }}
+      #     body: |
+      #       This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
+
+      #       It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
+
+      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.latest.outputs.version }}/RELEASES.md
+      #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
+      #       [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.latest.outputs.version }}
+
   release-patch:
     if: ${{ inputs.action == 'patch' }}
     name: Release patch
