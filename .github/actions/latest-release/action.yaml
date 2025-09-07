@@ -12,7 +12,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Archive previous release
+    - name: Latest release
       id: latest
       shell: bash
       env:
@@ -20,8 +20,8 @@ runs:
       run: |
         set -ex
         # git fetch origin
-        rustc .github/scripts/release-branch.rs -o /release-branch
-        version=`/release-branch`
+        rustc .github/scripts/release-branch.rs -o /tmp/release-branch
+        version=`/tmp/release-branch`
 
         echo "branch=release-$version" >> $GITHUB_OUTPUT
         echo "version=$version" >> $GITHUB_OUTPUT
