@@ -103,11 +103,17 @@ jobs:
       #     set -ex
       #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
       #     echo "version=$version" >> $GITHUB_OUTPUT
-      - name: Get Latest Release
-        uses: pozetroninc/github-action-get-latest-release@v0.8.0
+      # - name: Get Latest Release
+      #   uses: pozetroninc/github-action-get-latest-release@v0.8.0
+      #   id: latest
+      
+      - name: Get Latest Tag
         id: latest
+        run: |
+          latest_tag=$(git tag | sort --version-sort | tail -n1)
+          echo "tag=$latest_tag" >> $GITHUB_OUTPUT
 
-      - run: echo "Latest release is ${{ steps.latest.outputs.release }}"
+      - run: echo "Latest release is ${{ steps.latest.outputs.tag }}"
 
       # - name: Release latest
       #   run: |
