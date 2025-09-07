@@ -48,38 +48,6 @@ jobs:
         run: |
           set -ex
           git push origin HEAD:release-${{ steps.release.outputs.version }}
-      
-      # # archive release notes:
-      # # - [d]elete previous release notes
-      # # - [a]dd current version to the list of archived versions
-      # - name: Archive previous releases
-      #   run: |
-      #     set -ex
-      #     sed -i '0,/-----------/d' RELEASES.md
-      #     version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
-      #     sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
-      
-      #   # create new release notes and push to release branch
-      # - name: Add new release
-      #   run: |
-      #     set -ex
-      #     archive=$(cat RELEASES.md)
-      #     cat > RELEASES.md <<EOF
-      #     ## ${{ steps.release.outputs.version }}
-
-      #     Unreleased
-
-      #     ### Added
-
-      #     ### Changed
-
-      #     --------------------------------------------------------------------------------
-      #     $archive
-      #     EOF
-
-      #     git add RELEASES.md
-      #     git commit -m "Add initial release notes for ${{ steps.release.outputs.version }}"
-      #     git push origin HEAD:release-${{ steps.release.outputs.version }}
 
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
@@ -104,37 +72,42 @@ jobs:
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
-      # archive release notes:
-      # - [d]elete previous release notes
-      # - [a]dd current version to the list of archived versions
-      - name: Archive previous releases
-        run: |
-          set -ex
-          sed -i '0,/-----------/d' RELEASES.md
-          version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
-          sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
+      - uses: ./.github/actions/release-notes
+        with:
+          next-version: ${{ steps.next.outputs.version }}
+          release-version: ${{ steps.release.outputs.version }}
 
-        # update main release notes for next release
-      - name: Update 'main' release notes
-        run: |
-          set -ex
-          archive=$(cat RELEASES.md)
-          cat > RELEASES.md <<EOF
-          ## ${{ steps.next.outputs.version }}
+      # # archive release notes:
+      # # - [d]elete previous release notes
+      # # - [a]dd current version to the list of archived versions
+      # - name: Archive previous releases
+      #   run: |
+      #     set -ex
+      #     sed -i '0,/-----------/d' RELEASES.md
+      #     version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
+      #     sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
 
-          Unreleased
+      #   # update main release notes for next release
+      # - name: Update 'main' release notes
+      #   run: |
+      #     set -ex
+      #     archive=$(cat RELEASES.md)
+      #     cat > RELEASES.md <<EOF
+      #     ## ${{ steps.next.outputs.version }}
 
-          ### Added
+      #     Unreleased
 
-          ### Changed
+      #     ### Added
 
-          --------------------------------------------------------------------------------
-          $archive
-          EOF
+      #     ### Changed
 
-          git add RELEASES.md
-          git commit -m "Update release notes for ${{ steps.next.outputs.version }}"
-          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+      #     --------------------------------------------------------------------------------
+      #     $archive
+      #     EOF
+
+      #     git add RELEASES.md
+      #     git commit -m "Update release notes for ${{ steps.next.outputs.version }}"
+      #     git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
           
       # create PR to update main version
       - name: Create PR for 'main' version branch
@@ -145,14 +118,14 @@ jobs:
           body: |
             This pull request has been triggered by the creation of a new [release branch][branch]. 
             
-            Specifically, it merges the new version number (bumped from ${{ steps.current.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
+            Specifically, it merges the new version number (bumped from ${{ steps.release.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
 
-            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.current.outputs.version }} and make updates directly to the [release branch][branch].
+            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.release.outputs.version }} and make updates directly to the [release branch][branch].
 
             If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ steps.current.outputs.version }}` branch.
 
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md
-            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.current.outputs.version }}
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md
+            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.release.outputs.version }}
 
   release-latest:
     if: ${{ inputs.action == 'release' }}
@@ -177,8 +150,6 @@ jobs:
           rustc .github/scripts/release-branch.rs -o /tmp/release-branch
           version=`/tmp/release-branch`
           echo "branch=release-$version" >> $GITHUB_OUTPUT
-
-      # - run: echo "Latest release is ${{ steps.latest.outputs.branch }}"
 
       # Move to the latest release branch, update the release date and commit.
       # `[tag-and-release]` in the commit message triggers the publish workflow.
