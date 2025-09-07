@@ -49,6 +49,39 @@ jobs:
           set -ex
           git push origin HEAD:release-${{ steps.current.outputs.version }}
 
+      - name: Update release notes
+        run: |
+          set -ex
+
+          # remove release notes for the current version
+          sed -i '0,/-----------/d' RELEASES.md
+
+          # add current version to the list of archived versions
+          version_x=$(echo ${{ steps.current.outputs.version }} | sed 's/.$/x/')
+          sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md)" RELEASES.md
+
+          # create new release notes
+          cp RELEASES.md backup-releases
+          cat > RELEASES.md <<EOF
+          ## ${{ steps.current.outputs.version }}
+
+          Unreleased
+
+          ### Added
+
+          ### Changed
+
+          --------------------------------------------------------------------------------
+          EOF
+
+          # append historical releases
+          cat backup-releases >> RELEASES.md
+          rm backup-releases
+
+          # git add RELEASES.md
+          # git commit -m "Add initial release notes for ${{ steps.current.outputs.version }}"
+          # git push origin HEAD:release-${{ steps.current.outputs.version }}
+
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
         with:
@@ -116,9 +149,8 @@ jobs:
 
       # - run: echo "Latest release is ${{ steps.latest.outputs.branch }}"
 
-      # Move to the latest release branch, update the release date and
-      # commit it, indicating that the commit is what will get tagged and
-      # released
+      # Move to the latest release branch, update the release date and commit.
+      # `[tag-and-release]` in the commit message triggers the publish workflow.
       - name: Release
         run: |
           set -ex
@@ -126,7 +158,7 @@ jobs:
           # sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
           git commit --allow-empty -a -F-<<EOF
           Release ${{ steps.latest.outputs.branch }}
-          [automatically-tag-and-release-this-commit]
+          [tag-and-release]
           EOF
 
           git push origin HEAD:ci/${{ steps.latest.outputs.branch }}

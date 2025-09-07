@@ -48,7 +48,7 @@ jobs:
           echo "version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          if grep -q "automatically-tag-and-release-this-commit" main.log; then
+          if grep -q "tag-and-release" main.log; then
             echo push-tag
             echo "push_tag=yes" >> $GITHUB_OUTPUT
           else
