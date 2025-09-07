@@ -1,6 +1,6 @@
-## 0.1.0
+## 0.2.0
 
-Unreleased.
+Unreleased
 
 ### Added
 
@@ -12,3 +12,4 @@ Release notes for previous releases can be found on the respective release
 branches of the repository.
 
 <!-- ARCHIVE_START -->
+* [0.2.x](https://github.com/credibil/core/blob/release-0.2.0/RELEASES.md)
