@@ -64,7 +64,7 @@ jobs:
           
           # create new release notes
           # cp RELEASES.md backup-releases
-          let archive="$(cat RELEASES.md)"
+          let archive=$(cat RELEASES.md)
           cat > RELEASES.md <<EOF
           ## ${{ steps.current.outputs.version }}
 
