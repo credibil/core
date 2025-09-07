@@ -28,14 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
-      # get current version
-      - name: Current version
-        id: current
-        run: |
-          set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
 
       # set committer's git identity
       - name: Set git identity
@@ -43,49 +35,51 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
+      # get the version for this release (from main) 
+      - name: Release version
+        id: release
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
       # create release branch from main (already set to next version)
       - name: Create release branch
         run: |
           set -ex
-          git push origin HEAD:release-${{ steps.current.outputs.version }}
+          git push origin HEAD:release-${{ steps.release.outputs.version }}
       
-      # release notes
-      - name: Update release notes
-        run: |
-          set -ex
+      # # archive release notes:
+      # # - [d]elete previous release notes
+      # # - [a]dd current version to the list of archived versions
+      # - name: Archive previous releases
+      #   run: |
+      #     set -ex
+      #     sed -i '0,/-----------/d' RELEASES.md
+      #     version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
+      #     sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
+      
+      #   # create new release notes and push to release branch
+      # - name: Add new release
+      #   run: |
+      #     set -ex
+      #     archive=$(cat RELEASES.md)
+      #     cat > RELEASES.md <<EOF
+      #     ## ${{ steps.release.outputs.version }}
 
-          # [d]elete previous release notes
-          sed -i '0,/-----------/d' RELEASES.md
+      #     Unreleased
 
-          # [a]dd current version to the list of archived versions
-          version_x=$(echo ${{ steps.current.outputs.version }} | sed 's/.$/x/')
-          sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.current.outputs.version }}/RELEASES.md)" RELEASES.md
+      #     ### Added
 
-          
-          # create new release notes
-          # cp RELEASES.md backup-releases
-          archive=$(cat RELEASES.md)
-          cat > RELEASES.md <<EOF
-          ## ${{ steps.current.outputs.version }}
+      #     ### Changed
 
-          Unreleased
+      #     --------------------------------------------------------------------------------
+      #     $archive
+      #     EOF
 
-          ### Added
-
-          ### Changed
-
-          --------------------------------------------------------------------------------
-          $archive
-          EOF
-
-          # append historical releases
-          # cat backup-releases >> RELEASES.md
-          # rm backup-releases
-
-          # push changes to release branch
-          git add RELEASES.md
-          git commit -m "Add initial release notes for ${{ steps.current.outputs.version }}"
-          git push origin HEAD:release-${{ steps.current.outputs.version }}
+      #     git add RELEASES.md
+      #     git commit -m "Add initial release notes for ${{ steps.release.outputs.version }}"
+      #     git push origin HEAD:release-${{ steps.release.outputs.version }}
 
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
@@ -110,6 +104,38 @@ jobs:
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
+      # archive release notes:
+      # - [d]elete previous release notes
+      # - [a]dd current version to the list of archived versions
+      - name: Archive previous releases
+        run: |
+          set -ex
+          sed -i '0,/-----------/d' RELEASES.md
+          version_x=$(echo ${{ steps.release.outputs.version }} | sed 's/.$/x/')
+          sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md)" RELEASES.md
+
+        # update main release notes for next release
+      - name: Update 'main' release notes
+        run: |
+          set -ex
+          archive=$(cat RELEASES.md)
+          cat > RELEASES.md <<EOF
+          ## ${{ steps.next.outputs.version }}
+
+          Unreleased
+
+          ### Added
+
+          ### Changed
+
+          --------------------------------------------------------------------------------
+          $archive
+          EOF
+
+          git add RELEASES.md
+          git commit -m "Update release notes for ${{ steps.next.outputs.version }}"
+          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+          
       # create PR to update main version
       - name: Create PR for 'main' version branch
         uses: peter-evans/create-pull-request@v7
