@@ -104,7 +104,7 @@ jobs:
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-          
+
       - name: Latest release branch
         id: latest
         run: |
@@ -131,19 +131,19 @@ jobs:
 
           git push origin HEAD:ci/${{ steps.latest.outputs.branch }}
 
-      # - name: Create PR for release branch
-      #   uses: peter-evans/create-pull-request@v7
-      #   with:
-      #     branch: ci/${{ steps.latest.outputs.branch }}
-      #     title: Release core ${{ steps.latest.outputs.branch }}
-      #     body: |
-      #       This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
+      - name: Create PR for release
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ci/${{ steps.latest.outputs.branch }}
+          title: Release core ${{ steps.latest.outputs.branch }}
+          body: |
+            This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
 
-      #       It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
+            It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
 
-      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
-      #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
-      #       [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
+            [process]: https://docs.wasmtime.dev/contributing-release-process.html
+            [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
 
   release-patch:
     if: ${{ inputs.action == 'patch' }}
