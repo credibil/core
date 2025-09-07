@@ -99,23 +99,29 @@ jobs:
         with:
           fetch-depth: 0
         
+      - name: Latest release branch
+        id: latest
+        run: |
+          set -ex
+          git fetch origin
+          rustc .github/ci/release-branch.rs -o /tmp/release-branch
+          version=`/tmp/release-branch`
+          echo "branch=release-$version" >> $GITHUB_OUTPUT
+
       # - name: Latest release
       #   id: latest
       #   run: |
       #     set -ex
       #     version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
       #     echo "version=$version" >> $GITHUB_OUTPUT
-      # - name: Get Latest Release
-      #   uses: pozetroninc/github-action-get-latest-release@v0.8.0
+
+      # - name: Get Latest Tag
       #   id: latest
+      #   run: |
+      #     latest_tag=$(git tag | sort --version-sort | tail -n1)
+      #     echo "tag=$latest_tag" >> $GITHUB_OUTPUT
 
-      - name: Get Latest Tag
-        id: latest
-        run: |
-          latest_tag=$(git tag | sort --version-sort | tail -n1)
-          echo "tag=$latest_tag" >> $GITHUB_OUTPUT
-
-      - run: echo "Latest release is ${{ steps.latest.outputs.tag }}"
+      - run: echo "Latest release is ${{ steps.latest.outputs.branch }}"
 
       # - name: Release latest
       #   run: |
