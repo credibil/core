@@ -119,6 +119,7 @@ jobs:
       - name: Release
         run: |
           set -ex
+          git fetch origin
           git reset --hard origin/${{ steps.latest.outputs.branch }}
           # sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
           sed -i "s/^Unreleased/Released $(date +'%s')/" RELEASES.md
