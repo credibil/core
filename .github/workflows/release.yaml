@@ -128,7 +128,7 @@ jobs:
           [tag-and-release]
           EOF
           # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
-          git push origin ${{ steps.latest.outputs.branch }}
+          git push origin/${{ steps.latest.outputs.branch }}
 
       # # PR to trigger tag creation and the actual release 
       # - name: Create release PR
