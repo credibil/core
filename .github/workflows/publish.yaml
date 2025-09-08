@@ -58,7 +58,8 @@ jobs:
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
           notes=$(cat RELEASES.md)
-          echo "release_notes=$notes" >> $GITHUB_OUTPUT
+          echo $notes
+          # echo "release_notes=$notes" >> $GITHUB_OUTPUT
 
       - name: Bump version and push tag
         id: tag
@@ -75,7 +76,7 @@ jobs:
         with:
           tag: ${{ steps.tag.outputs.new_tag }}
           name: Release ${{ steps.tag.outputs.new_tag }}
-          body: ${{ steps.notes.outputs.release_notes }}
+          # body: ${{ steps.notes.outputs.release_notes }}
 
       # - name: Test if tag is needed
       #   id: tag
