@@ -19,8 +19,8 @@ name: Publish
 
 on:
   push:
-    branches:
-    - 'release-0.2.0'
+    # branches:
+    # - 'release-0.2.0'
 
 jobs:
   push-tag:
