@@ -2,15 +2,15 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      action:
-        description: The release action to take.
-        default: create
-        type: choice
-        options:
-          - create
-          - release
-          - patch
+    # inputs:
+    #   action:
+    #     description: The release action to take.
+    #     default: create
+    #     type: choice
+    #     options:
+    #       - create
+    #       - release
+    #       - patch
 
 env:
   # The type of version bump to perform when cutting a release
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   create-branch:
-    if: ${{ inputs.action == 'create' }}
+    # if: ${{ inputs.action == 'create' }}
     name: Create release
     runs-on: ubuntu-latest
     steps:
@@ -96,39 +96,39 @@ jobs:
             [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md
             [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.release.outputs.version }}
 
-  release-latest:
-    if: ${{ inputs.action == 'release' }}
-    name: Release latest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
+  # release-latest:
+  #   if: ${{ inputs.action == 'release' }}
+  #   name: Release latest
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 0
         
-      # set committer's git identity
-      - name: Set git identity
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+  #     # set committer's git identity
+  #     - name: Set git identity
+  #       run: |
+  #         git config user.name "${{ github.actor }}"
+  #         git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      - uses: ./.github/actions/latest-release
-        id: latest
+  #     - uses: ./.github/actions/latest-release
+  #       id: latest
 
-      # Move to the latest release branch, update the release date and commit.
-      # `[tag-and-release]` in the commit message triggers the publish workflow.
-      - name: Release
-        run: |
-          set -ex
-          git fetch origin
-          git reset --hard origin/${{ steps.latest.outputs.branch }}
-          sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
+  #     # Move to the latest release branch, update the release date and commit.
+  #     # `[tag-and-release]` in the commit message triggers the publish workflow.
+  #     - name: Release
+  #       run: |
+  #         set -ex
+  #         git fetch origin
+  #         git reset --hard origin/${{ steps.latest.outputs.branch }}
+  #         sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
 
-          git commit --allow-empty -a -F-<<EOF
-          Release ${{ steps.latest.outputs.branch }}
-          [tag-and-release]
-          EOF
-          # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
-          git push origin HEAD:${{ steps.latest.outputs.branch }}
+  #         git commit --allow-empty -a -F-<<EOF
+  #         Release ${{ steps.latest.outputs.branch }}
+  #         [tag-and-release]
+  #         EOF
+  #         # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
+  #         git push origin HEAD:${{ steps.latest.outputs.branch }}
 
       # # PR to trigger tag creation and the actual release 
       # - name: Create release PR
@@ -145,12 +145,12 @@ jobs:
       #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
       #       [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
 
-  release-patch:
-    if: ${{ inputs.action == 'patch' }}
-    name: Release patch
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+  # release-patch:
+  #   if: ${{ inputs.action == 'patch' }}
+  #   name: Release patch
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
         
       # # check semver against previous release
       # - name: Check semver
