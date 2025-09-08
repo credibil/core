@@ -123,12 +123,11 @@ jobs:
           git reset --hard origin/${{ steps.latest.outputs.branch }}
           sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
 
-          # git commit --allow-empty -a -F-<<EOF
-          # Release ${{ steps.latest.outputs.branch }}
-          # [tag-and-release]
-          # EOF
-          
-          git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
+          git commit --allow-empty -a -F-<<EOF
+          Release ${{ steps.latest.outputs.branch }}
+          [tag-and-release]
+          EOF
+          # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
       # # PR to trigger tag creation and the actual release 
