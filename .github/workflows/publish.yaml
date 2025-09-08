@@ -69,6 +69,7 @@ jobs:
           notes="$(cat RELEASES.md)"
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
           echo "$notes" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
           echo "${{ steps.tag.outputs.changelog }}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
