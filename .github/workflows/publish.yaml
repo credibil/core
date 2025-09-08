@@ -69,7 +69,8 @@ jobs:
           notes="$(cat RELEASES.md)"
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
           echo "$notes" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
+          echo "$\n" >> $GITHUB_OUTPUT
+          echo "----------" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           # echo "**Full Changelog**: https://github.com/credibil/core/compare/v0.1.0...v0.2.0" >> $GITHUB_OUTPUT
 
