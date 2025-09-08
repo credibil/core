@@ -25,24 +25,30 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      - name: Get latest release
-        id: latest
-        uses: ./.github/actions/latest-release
+      # - name: Get latest release
+      #   id: latest
+      #   uses: ./.github/actions/latest-release
+      
+      - name: Cargo version
+        id: cargo
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
         
       - name: Update release notes
         run: |
           set -ex
           sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
-          git commit --allow-empty -am "Release ${{ steps.latest.outputs.branch }}"
-          # git push origin HEAD:${{ steps.latest.outputs.branch }}
-          git push 
+          git commit --allow-empty -am "Release ${{ steps.cargo.outputs.version }}"
+          git push
 
       - name: Bump version and push tag
         id: tag
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: ${{ steps.latest.outputs.version }}
+          custom_tag: ${{ steps.cargo.outputs.version }}
 
   release:
     name: Create GitHub release
@@ -67,5 +73,4 @@ jobs:
           name: Release ${{ needs.tag.outputs.tag }}
           body: ${{ steps.notes.outputs.release_notes }}
           generateReleaseNotes: true # add link to full changelog
-          
           # bodyFile: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
