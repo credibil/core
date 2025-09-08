@@ -1,4 +1,4 @@
-name: Release
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -22,10 +22,12 @@ permissions:
   pull-requests: write
 
 jobs:
+  # Create a new release branch from main (cut a release)
   create-branch:
-    # if: ${{ inputs.action == 'create' }}
-    name: Create release
+    name: Create release branch
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: actions/checkout@v5
 
@@ -49,6 +51,14 @@ jobs:
           set -ex
           git push origin HEAD:release-${{ steps.release.outputs.version }}
 
+  # Bump the version and create a PR to merge it back into 'main'
+  increment-version:
+    name: Increment 'main' version
+    runs-on: ubuntu-latest
+    needs: create-branch
+    steps:
+      - uses: actions/checkout@v5
+        
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
         with:
@@ -58,12 +68,18 @@ jobs:
       - name: Bump 'main' version
         run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
 
-      - name: Get 'main' version
+      - name: Get next version
         id: next
         run: |
           set -ex
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
+
+      # update release notes for the next release
+      - uses: ./.github/actions/release-notes
+        with:
+          release-version: ${{ needs.create-branch.outputs.version }}
+          next-version: ${{ steps.next.outputs.version }}
 
       # push next version to a branch and create a PR
       - name: Create branch to update 'main' version
@@ -71,12 +87,6 @@ jobs:
           set -ex
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
-
-      # update release notes for the next release
-      - uses: ./.github/actions/release-notes
-        with:
-          release-version: ${{ steps.release.outputs.version }}
-          next-version: ${{ steps.next.outputs.version }}
 
       # create PR to update main version
       - name: Create PR for 'main' version branch
@@ -87,84 +97,11 @@ jobs:
           body: |
             This pull request has been triggered by the creation of a new [release branch][branch]. 
             
-            Specifically, it merges the new version number (bumped from ${{ steps.release.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
+            Specifically, it merges the new version number (bumped from ${{ needs.create-branch.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
 
-            Maintainers should review the [release notes][RELEASES.md] for ${{ steps.release.outputs.version }} and make updates directly to the [release branch][branch].
+            Maintainers should review the [release notes][RELEASES.md] for ${{ needs.create-branch.outputs.version }} and make updates directly to the [release branch][branch].
 
-            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ steps.release.outputs.version }}` branch.
+            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ needs.create-branch.outputs.version }}` branch.
 
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ steps.release.outputs.version }}/RELEASES.md
-            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ steps.release.outputs.version }}
-
-  # release-latest:
-  #   if: ${{ inputs.action == 'release' }}
-  #   name: Release latest
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #       with:
-  #         fetch-depth: 0
-        
-  #     # set committer's git identity
-  #     - name: Set git identity
-  #       run: |
-  #         git config user.name "${{ github.actor }}"
-  #         git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-
-  #     - uses: ./.github/actions/latest-release
-  #       id: latest
-
-  #     # Move to the latest release branch, update the release date and commit.
-  #     # `[tag-and-release]` in the commit message triggers the publish workflow.
-  #     - name: Release
-  #       run: |
-  #         set -ex
-  #         git fetch origin
-  #         git reset --hard origin/${{ steps.latest.outputs.branch }}
-  #         sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
-
-  #         git commit --allow-empty -a -F-<<EOF
-  #         Release ${{ steps.latest.outputs.branch }}
-  #         [tag-and-release]
-  #         EOF
-  #         # git commit -am "Release ${{ steps.latest.outputs.branch }} [tag-and-release]"
-  #         git push origin HEAD:${{ steps.latest.outputs.branch }}
-
-      # # PR to trigger tag creation and the actual release 
-      # - name: Create release PR
-      #   uses: peter-evans/create-pull-request@v7
-      #   with:
-      #     branch: ci/${{ steps.latest.outputs.branch }}
-      #     title: Release core ${{ steps.latest.outputs.branch }}
-      #     body: |
-      #       This is an [automated pull request][process] from CI which is intended to notify maintainers that it's time to release core ${{ steps.latest.outputs.version }}. The [release branch][branch] was created roughly two weeks ago and it's now time for it to be published and released.
-
-      #       It's recommended that maintainers double-check that [RELEASES.md] is up-to-date and that there are no known issues before merging this PR. When this PR is merged a release tag will automatically created, crates will be published, and CI artifacts will be produced.
-
-      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
-      #       [process]: https://docs.wasmtime.dev/contributing-release-process.html
-      #       [branch]: https://github.com/${{ github.repository }}/tree/${{ steps.latest.outputs.branch }}
-
-  # release-patch:
-  #   if: ${{ inputs.action == 'patch' }}
-  #   name: Release patch
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v5
-        
-      # # check semver against previous release
-      # - name: Check semver
-      #   uses: obi1kenobi/cargo-semver-checks-action@v2
-      #   with:
-      #     baseline-rev: v${{ steps.current.outputs.version }}
-
-      # # calculate minimum version bump required
-      # - uses: taiki-e/install-action@v2
-      #   with:
-      #     tool: cargo-semver-checks
-      # - run: cargo build --manifest-path crates/ci/Cargo.toml
-      # - name: Calculate version bump
-      #   id: bump
-      #   run: |
-      #     level=$(./target/debug/calculate-version)
-      #     echo "level=$level" >> $GITHUB_OUTPUT
+            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ needs.create-branch.outputs.version }}/RELEASES.md
+            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ needs.create-branch.outputs.version }}

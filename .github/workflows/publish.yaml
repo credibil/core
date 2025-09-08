@@ -1,37 +1,16 @@
-name: Publish
-
-# The purpose of this job is to watch `release-*` branches for the term 
-# "automatically-tag-and-release-this-commit" within merged PRs/commits. Once
-# that term is found the current version of `Cargo.toml` is used to create a
-# tag and the tag is pushed to the repo.
-# 
-# Currently the tag is created through the GitHub API with an access token to
-# ensure that CI is further triggered for the tag itself which performs the
-# full release process.
-#
-# Note that this depends on the `ci-status` step above which is the "join"
-# point of this workflow for when everything succeeds. the purpose of that is
-# so that the tag is only created after the aftifacts have been uploaded for
-# this workflow as the `publish-artifacts.yml` workflow will download these
-# artifacts and then publish them to the tag.
+name: Publish Release
 
 # if: ${{ github.event.head_commit.message }} contains '[tag-and-release]'
 
 on:
   workflow_dispatch:
-    # inputs:
-    #   action:
-    #     description: The release action to take.
-    #     default: create
-    #     type: choice
-    #     options:
-    #       - create
-    #       - release
-    #       - patch
 
 jobs:
   tag:
+    name: Tag release
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -42,19 +21,19 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      - uses: ./.github/actions/latest-release
+      - name: Get latest release
         id: latest
-
-      # Move to the latest release branch, update the release date and commit.
-      # `[tag-and-release]` in the commit message triggers the publish workflow.
+        uses: ./.github/actions/latest-release
+        
       - name: Update release notes
         run: |
           set -ex
-          git fetch origin
-          git reset --hard origin/${{ steps.latest.outputs.branch }}
+          # git fetch origin
+          # git reset --hard origin/${{ steps.latest.outputs.branch }}
           sed -i "s/^Unreleased/Released $(date +'%Y-%m-%d')/" RELEASES.md
           git commit --allow-empty -am "Release ${{ steps.latest.outputs.branch }}"
-          git push origin HEAD:${{ steps.latest.outputs.branch }}
+          # git push origin HEAD:${{ steps.latest.outputs.branch }}
+          git push 
 
       - name: Bump version and push tag
         id: tag
@@ -62,6 +41,13 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: ${{ steps.latest.outputs.version }}
+
+  release:
+    name: Create GitHub release
+    needs: tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
 
       - name: Get release notes
         id: notes
@@ -71,13 +57,12 @@ jobs:
           echo "$notes" >> $GITHUB_OUTPUT
           echo "---" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          # echo "**Full Changelog**: https://github.com/credibil/core/compare/v0.1.0...v0.2.0" >> $GITHUB_OUTPUT
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.tag.outputs.new_tag }}
-          name: Release ${{ steps.tag.outputs.new_tag }}
+          tag: ${{ needs.tag.outputs.tag }}
+          name: Release ${{ needs.tag.outputs.tag }}
           body: ${{ steps.notes.outputs.release_notes }}
           # bodyFile: https://github.com/${{ github.repository }}/blob/${{ steps.latest.outputs.branch }}/RELEASES.md
           generateReleaseNotes: true
