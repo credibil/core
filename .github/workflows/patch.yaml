@@ -12,8 +12,9 @@ jobs:
     if: ${{ !startsWith(github.ref_name, 'release-') }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This workflow only runs on the 'release-*' branches"
-      - run: exit 1
+      - run: |
+          echo "This workflow only runs on the 'release-*' branches"
+          exit 1
           
   # Increment patch version and update RELEASES.md
   # Push back to the release-<version> branch for review and publishing
@@ -37,10 +38,7 @@ jobs:
 
       - name: Patch version
         id: patch
-        run: |
-          set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/cargo-version
 
       - name: Update release notes
         uses: ./.github/actions/release-notes

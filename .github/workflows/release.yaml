@@ -14,12 +14,13 @@ permissions:
 
 jobs:
   skip:
-    name: Workflow skipped
+    name: Skipped
     if: github.ref_name != 'main'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This workflow only runs on the 'main' branch"
-      - run: exit 1
+      - run: |
+          echo "This workflow only runs on the 'main' branch"
+          exit 1
 
   # Create a new release branch from main (cut a release)
   create:
@@ -31,22 +32,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # set committer's git identity
-      - name: git identity
+      - name: Git identity
         uses: ./.github/actions/git-identity
 
-      # get the version for this release (from main) 
       - name: Release version
         id: release
-        run: |
-          set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/cargo-version
 
       # create release branch from main (already set to next version)
       - name: Release branch
         run: |
-          set -ex
           git push origin HEAD:release-${{ steps.release.outputs.version }}
 
   # Bump the version and create a PR to merge it back into 'main'
@@ -71,10 +66,7 @@ jobs:
 
       - name: Next version
         id: next
-        run: |
-          set -ex
-          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/cargo-version
 
       # create a branch for the main updates
       - name: Branch to update 'main'
