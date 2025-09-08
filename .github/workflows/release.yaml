@@ -59,6 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         
+      - name: Set git identity
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+      
       - name: Install cargo-release
         uses: taiki-e/install-action@v2
         with:
@@ -76,7 +81,8 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       # update release notes for the next release
-      - uses: ./.github/actions/release-notes
+      - name: Update release notes
+        uses: ./.github/actions/release-notes
         with:
           release-version: ${{ needs.create-branch.outputs.version }}
           next-version: ${{ steps.next.outputs.version }}
