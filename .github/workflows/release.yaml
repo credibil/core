@@ -2,15 +2,6 @@ name: Create Release
 
 on:
   workflow_dispatch:
-    # inputs:
-    #   action:
-    #     description: The release action to take.
-    #     default: create
-    #     type: choice
-    #     options:
-    #       - create
-    #       - release
-    #       - patch
 
 env:
   # The type of version bump to perform when cutting a release
@@ -22,6 +13,15 @@ permissions:
   pull-requests: write
 
 jobs:
+  skip:
+    name: Workflow skipped
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "This workflow only runs on the 'main' branch"
+          exit 1
+
   # Create a new release branch from main (cut a release)
   create:
     name: Create release
@@ -34,9 +34,7 @@ jobs:
 
       # set committer's git identity
       - name: git identity
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        uses: ./.github/actions/git-identity
 
       # get the version for this release (from main) 
       - name: Release version
@@ -61,9 +59,7 @@ jobs:
       - uses: actions/checkout@v5
         
       - name: Git identity
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        uses: ./.github/actions/git-identity
       
       - name: Install cargo-release
         uses: taiki-e/install-action@v2

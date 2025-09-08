@@ -1,0 +1,11 @@
+name: Git identity
+description: Set git identity for the workflow.
+
+runs:
+  using: composite
+  steps:
+    - name: git identity
+      shell: bash
+      run: |
+        git config user.name "${{ github.actor }}"
+        git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"

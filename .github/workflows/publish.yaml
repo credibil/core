@@ -4,9 +4,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  skip:
+    name: Skipped
+    if: ${{ !startsWith(github.ref_name, 'release-') }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "This workflow only runs on the 'release-*' branches"
+          exit 1
+        
   # verify:
   #   name: Verify release
-  #   if: startsWith(github.ref_name, 'release-')
   #   uses: credibil/pipeline/.github/workflows/verify.yaml@main
 
   tag:
@@ -21,14 +29,12 @@ jobs:
           fetch-depth: 0
 
       - name: Set git identity
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        uses: ./.github/actions/git-identity
 
       # - name: Get latest release
       #   id: latest
       #   uses: ./.github/actions/latest-release
-      
+
       - name: Cargo version
         id: cargo
         run: |
