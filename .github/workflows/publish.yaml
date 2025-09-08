@@ -57,12 +57,16 @@ jobs:
           git commit --allow-empty -am "Release ${{ steps.latest.outputs.branch }}"
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
+          notes=$(cat RELEASES.md)
+          echo $notes
+          # echo "release_notes=$notes" >> $GITHUB_OUTPUT
+
       - name: Bump version and push tag
         id: tag
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: v${{ steps.latest.outputs.version }}
+          custom_tag: ${{ steps.latest.outputs.version }}
       
       - run: |
           echo "${{ steps.tag.outputs.changelog }}"
