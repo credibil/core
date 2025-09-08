@@ -20,7 +20,8 @@ runs:
       run: |
         set -ex
 
-        version=$(sed -n '1p' RELEASES.md)
+        title=$(sed -n '1p' RELEASES.md)
+        version=$(echo $title | sed 's/## //')
         version_x=$(echo $version | sed 's/.$/x/')
         sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-$version/RELEASES.md)" RELEASES.md
 
