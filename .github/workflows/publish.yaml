@@ -32,6 +32,7 @@ jobs:
 
       - run: |
           echo "message: ${{ github.event.head_commit.message }}"
+          echo "event: ${{ github.event }}"
 
       # - name: Test if tag is needed
       #   id: tag
