@@ -1,4 +1,5 @@
 use std::process::Command;
+
 fn main() {
     let output = Command::new("git")
         .arg("for-each-ref")
@@ -8,6 +9,7 @@ fn main() {
         .output()
         .unwrap();
     assert!(output.status.success());
+
     let mut releases = std::str::from_utf8(&output.stdout)
         .unwrap()
         .lines()
@@ -21,6 +23,7 @@ fn main() {
         })
         .collect::<Vec<_>>();
     releases.sort();
+    
     let (major, minor, patch) = releases.last().unwrap();
     println!("{}.{}.{}", major, minor, patch);
 }
