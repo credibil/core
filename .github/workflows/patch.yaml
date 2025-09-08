@@ -71,8 +71,6 @@ jobs:
       #     git commit -am "Bump to ${{ steps.patch.outputs.version }}"
       #     git push origin HEAD:ci/patch-${{ steps.patch.outputs.version }}
 
-
-
       # # create PR to update main version
       # - name: PR to merge 'main' updates
       #   uses: peter-evans/create-pull-request@v7

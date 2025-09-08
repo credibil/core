@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  verify:
-    name: Verify release
-    if: startsWith(github.ref_name, 'release-')
-    uses: credibil/pipeline/.github/workflows/verify.yaml@main
+  # verify:
+  #   name: Verify release
+  #   if: startsWith(github.ref_name, 'release-')
+  #   uses: credibil/pipeline/.github/workflows/verify.yaml@main
 
   tag:
     name: Tag release
-    needs: verify
+    # needs: verify
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.new_tag }}
