@@ -1,0 +1,94 @@
+name: Create Patch
+
+on:
+  workflow_dispatch:
+    # inputs:
+    #   action:
+    #     description: The release action to take.
+    #     default: create
+    #     type: choice
+    #     options:
+    #       - create
+    #       - release
+    #       - patch
+
+
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Increment patch version and update RELEASES.md
+  # Push the result to a branch and setup metadata for the step below
+  # that creates a PR
+  version:
+    name: Bump Cargo version
+    if: startsWith(github.ref_name, 'release-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        
+      - name: Set git identity
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+      
+      - name: Current version
+        id: current
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Install cargo-release
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-release
+
+      # bump patch version
+      - name: Bump patch version
+        run: cargo release version patch --execute --no-confirm
+
+      - name: Patch version
+        id: patch
+        run: |
+          set -ex
+          version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      # update release notes for the patch release
+      - name: Update release notes
+        uses: ./.github/actions/release-notes
+        with:
+          version: ${{ steps.patch.outputs.version }}
+          branch: ${{ github.ref_name }}
+
+      # # create a temporary branch for the patch updates
+      # - name: Branch to update 'main'
+      #   run: |q
+      #     set -ex
+      #     git commit -am "Bump to ${{ steps.patch.outputs.version }}"
+      #     git push origin HEAD:ci/patch-${{ steps.patch.outputs.version }}
+
+
+
+      # # create PR to update main version
+      # - name: PR to merge 'main' updates
+      #   uses: peter-evans/create-pull-request@v7
+      #   with:
+      #     branch: ci/next-${{ steps.patch.outputs.version }}
+      #     title: Bump to ${{ steps.patch.outputs.version }}
+      #     body: |
+      #       This pull request has been triggered by the creation of a new [release branch][branch]. 
+            
+      #       Specifically, it merges the new version number (bumped from ${{ steps.patch.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
+
+      #       Maintainers should review the [release notes][RELEASES.md] for ${{ needs.create-branch.outputs.version }} and make updates directly to the [release branch][branch].
+
+      #       If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `${{ github.ref_name }}` branch.
+
+      #       [RELEASES.md]: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/RELEASES.md
+      #       [branch]: https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}
+
+

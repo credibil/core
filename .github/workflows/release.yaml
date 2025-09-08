@@ -92,8 +92,8 @@ jobs:
       - name: Update RELEASES.md
         uses: ./.github/actions/release-notes
         with:
-          from-version: ${{ needs.create.outputs.version }}
-          to-version: ${{ steps.next.outputs.version }}
+          version: ${{ steps.next.outputs.version }}
+          branch: ci/next-${{ steps.next.outputs.version }}
 
       # create PR to update main version
       - name: PR to update 'main'
