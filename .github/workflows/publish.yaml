@@ -56,7 +56,6 @@ jobs:
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
           notes=$(cat RELEASES.md)
-          echo "version=$version" >> $GITHUB_OUTPUT
           echo "release_notes=$notes" >> $GITHUB_OUTPUT
 
       - name: Bump version and push tag
