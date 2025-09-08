@@ -57,9 +57,9 @@ jobs:
           git commit --allow-empty -am "Release ${{ steps.latest.outputs.branch }}"
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
-          notes=$(cat RELEASES.md)
-          echo $notes
-          # echo "release_notes=$notes" >> $GITHUB_OUTPUT
+          notes="$(cat RELEASES.md)"
+          echo "RELEASE_NOTES=$notes" >> $GITHUB_ENV
+          echo "release_notes=$notes" >> $GITHUB_OUTPUT
 
       - name: Bump version and push tag
         id: tag
@@ -69,6 +69,7 @@ jobs:
           custom_tag: ${{ steps.latest.outputs.version }}
       
       - run: |
+          echo "${{ env.RELEASE_NOTES }}"
           echo "${{ steps.tag.outputs.changelog }}"
 
       - name: Create a GitHub release
