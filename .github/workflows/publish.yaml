@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "This workflow only runs on the 'release-*' branches"
+      - run: exit 1
         
   # verify:
   #   name: Verify release
