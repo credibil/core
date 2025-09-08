@@ -80,6 +80,13 @@ jobs:
           version=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      # create a branch for the main updates
+      - name: Create branch to update 'main'
+        run: |
+          set -ex
+          git commit -am "Bump to ${{ steps.next.outputs.version }}"
+          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+
       # update release notes for the next release
       - name: Update release notes
         uses: ./.github/actions/release-notes
@@ -87,12 +94,7 @@ jobs:
           release-version: ${{ needs.create-branch.outputs.version }}
           next-version: ${{ steps.next.outputs.version }}
 
-      # push next version to a branch and create a PR
-      - name: Create branch to update 'main' version
-        run: |
-          set -ex
-          git commit -am "Bump to ${{ steps.next.outputs.version }}"
-          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+
 
       # create PR to update main version
       - name: Create PR for 'main' version branch
