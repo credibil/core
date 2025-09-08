@@ -58,8 +58,7 @@ jobs:
           git push origin HEAD:${{ steps.latest.outputs.branch }}
 
           notes="$(cat RELEASES.md)"
-          echo "RELEASE_NOTES=$notes" >> $GITHUB_ENV
-          echo "release_notes=$notes" >> $GITHUB_OUTPUT
+          echo "output<<EOF\n$notes\nEOF" >> $GITHUB_OUTPUT
 
       - name: Bump version and push tag
         id: tag
@@ -68,16 +67,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: ${{ steps.latest.outputs.version }}
       
-      - run: |
-          echo "${{ env.RELEASE_NOTES }}"
-          echo "${{ steps.tag.outputs.changelog }}"
+      # - run: |
+      #     echo "${{ steps.tag.outputs.changelog }}"
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag.outputs.new_tag }}
           name: Release ${{ steps.tag.outputs.new_tag }}
-          # body: ${{ steps.notes.outputs.release_notes }}
+          body: ${{ steps.notes.outputs.release_notes }}
 
       # - name: Test if tag is needed
       #   id: tag
