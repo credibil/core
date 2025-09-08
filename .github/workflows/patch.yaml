@@ -12,10 +12,8 @@ jobs:
     if: ${{ !startsWith(github.ref_name, 'release-') }}
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "This workflow only runs on the 'release-*' branches"
-          exit 1
-          
+      - run: echo "This workflow only runs on the 'release-*' branches"
+
   # Increment patch version and update RELEASES.md
   # Push back to the release-<version> branch for review and publishing
   patch:
