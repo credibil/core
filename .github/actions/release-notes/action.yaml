@@ -2,10 +2,10 @@ name: Prepare release notes
 description: Prepare release notes for the upcoming release
 
 inputs:
-  release-version:
+  from-version:
     description: The version of the release to archive.
     required: true
-  next-version:
+  to-version:
     description: The version to use to create release notes.
     required: true
 
@@ -19,8 +19,8 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -ex
-        version_x=$(echo ${{ inputs.release-version }} | sed 's/.$/x/')
-        sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ inputs.release-version }}/RELEASES.md)" RELEASES.md
+        version_x=$(echo ${{ inputs.from-version }} | sed 's/.$/x/')
+        sed -i "/ARCHIVE_START/a * [$version_x](https://github.com/${{ github.repository }}/blob/release-${{ inputs.from-version }}/RELEASES.md)" RELEASES.md
 
     - name: Create next release notes
       shell: bash
@@ -32,7 +32,7 @@ runs:
         archive=$(cat RELEASES.md)
 
         cat > RELEASES.md <<EOF
-        ## ${{ inputs.next-version }}
+        ## ${{ inputs.to-version }}
 
         Unreleased
 
@@ -44,5 +44,5 @@ runs:
         $archive
         EOF
 
-        git commit -am "Update release notes for ${{ inputs.next-version }}"
-        git push origin HEAD:ci/next-${{ inputs.next-version }}
+        git commit -am "Update release notes for ${{ inputs.to-version }}"
+        git push origin HEAD:ci/next-${{ inputs.to-version }}
