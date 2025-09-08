@@ -9,6 +9,7 @@ inputs:
     description: The version to use to create release notes.
     required: true
 
+# git reset --hard origin/${{ steps.latest.outputs.branch }}
 runs:
   using: composite
   steps:
@@ -43,6 +44,5 @@ runs:
         $archive
         EOF
 
-        # git add RELEASES.md
         git commit -am "Update release notes for ${{ inputs.next-version }}"
         git push origin HEAD:ci/next-${{ inputs.next-version }}

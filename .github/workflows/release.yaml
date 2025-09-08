@@ -73,7 +73,7 @@ jobs:
       - name: Bump 'main' version
         run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
 
-      - name: Get next version
+      - name: Next version
         id: next
         run: |
           set -ex
@@ -81,7 +81,7 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       # create a branch for the main updates
-      - name: Create branch to update 'main'
+      - name: Branch to update 'main'
         run: |
           set -ex
           git commit -am "Bump to ${{ steps.next.outputs.version }}"
@@ -94,10 +94,8 @@ jobs:
           release-version: ${{ needs.create-branch.outputs.version }}
           next-version: ${{ steps.next.outputs.version }}
 
-
-
       # create PR to update main version
-      - name: Create PR for 'main' version branch
+      - name: PR to merge 'main' updates
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ci/next-${{ steps.next.outputs.version }}
