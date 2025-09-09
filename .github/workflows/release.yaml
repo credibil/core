@@ -3,99 +3,99 @@ name: Create Release
 on:
   workflow_dispatch:
 
-env:
-  # The type of version bump to perform when cutting a release
-  # N.B Cargo version rules allow "minor" for breaking changes while on 0.x.y 
-  BUMP_TYPE: minor
-
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  skip:
-    name: Skipped
-    if: github.ref_name != 'main'
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "This workflow only runs on the 'main' branch"
-          exit 1
+  verify:
+    uses: credibil/pipeline/.github/workflows/release.yaml@main
 
-  # Create a new release branch from main (cut a release)
-  create:
-    name: Create release
-    if: github.ref_name == 'main'
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.release.outputs.version }}
-    steps:
-      - uses: actions/checkout@v5
 
-      - name: Git identity
-        uses: ./.github/actions/git-identity
+# permissions:
+#   contents: write
+#   pull-requests: write
 
-      - name: Release version
-        id: release
-        uses: ./.github/actions/cargo-version
+# jobs:
+#   skip:
+#     name: Skipped
+#     if: github.ref_name != 'main'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - run: |
+#           echo "This workflow only runs on the 'main' branch"
+#           exit 1
 
-      # create release branch from main (already set to next version)
-      - name: Release branch
-        run: |
-          git push origin HEAD:release-${{ steps.release.outputs.version }}
+#   # Create a new release branch from main (cut a release)
+#   create:
+#     name: Create release
+#     if: github.ref_name == 'main'
+#     runs-on: ubuntu-latest
+#     outputs:
+#       version: ${{ steps.release.outputs.version }}
+#     steps:
+#       - uses: actions/checkout@v5
 
-  # Bump the version and create a PR to merge it back into 'main'
-  next:
-    name: Next release
-    runs-on: ubuntu-latest
-    needs: create
-    steps:
-      - uses: actions/checkout@v5
+#       - name: Git identity
+#         uses: ./.github/actions/git-identity
+
+#       - name: Release version
+#         id: release
+#         uses: ./.github/actions/cargo-version
+
+#       # create release branch from main (already set to next version)
+#       - name: Release branch
+#         run: |
+#           git push origin HEAD:release-${{ steps.release.outputs.version }}
+
+#   # Bump the version and create a PR to merge it back into 'main'
+#   next:
+#     name: Next release
+#     runs-on: ubuntu-latest
+#     needs: create
+#     steps:
+#       - uses: actions/checkout@v5
         
-      - name: Git identity
-        uses: ./.github/actions/git-identity
+#       - name: Git identity
+#         uses: ./.github/actions/git-identity
       
-      - name: Install cargo-release
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-release
+#       - name: Install cargo-release
+#         uses: taiki-e/install-action@v2
+#         with:
+#           tool: cargo-release
 
-      # bump to next version
-      - name: Next version
-        run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
+#       # bump to next version
+#       - name: Next version
+#         run: cargo release version ${{ env.BUMP_TYPE }} --execute --no-confirm
 
-      - name: Next version
-        id: next
-        uses: ./.github/actions/cargo-version
+#       - name: Next version
+#         id: next
+#         uses: ./.github/actions/cargo-version
 
-      # create a branch for the main updates
-      - name: Branch to update 'main'
-        run: |
-          set -ex
-          git commit -am "Bump to ${{ steps.next.outputs.version }}"
-          git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
+#       # create a branch for the main updates
+#       - name: Branch to update 'main'
+#         run: |
+#           set -ex
+#           git commit -am "Bump to ${{ steps.next.outputs.version }}"
+#           git push origin HEAD:ci/next-${{ steps.next.outputs.version }}
 
-      # update release notes for the next release
-      - name: Update RELEASES.md
-        uses: ./.github/actions/release-notes
-        with:
-          version: ${{ steps.next.outputs.version }}
-          branch: ci/next-${{ steps.next.outputs.version }}
+#       # update release notes for the next release
+#       - name: Update RELEASES.md
+#         uses: ./.github/actions/release-notes
+#         with:
+#           version: ${{ steps.next.outputs.version }}
+#           branch: ci/next-${{ steps.next.outputs.version }}
 
-      # create PR to update main version
-      - name: PR to update 'main'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: ci/next-${{ steps.next.outputs.version }}
-          title: Bump to ${{ steps.next.outputs.version }}
-          body: |
-            This pull request has been triggered by the creation of a new [release branch][branch]. 
+#       # create PR to update main version
+#       - name: PR to update 'main'
+#         uses: peter-evans/create-pull-request@v7
+#         with:
+#           branch: ci/next-${{ steps.next.outputs.version }}
+#           title: Bump to ${{ steps.next.outputs.version }}
+#           body: |
+#             This pull request has been triggered by the creation of a new [release branch][branch]. 
             
-            Specifically, it merges the new version number (bumped from ${{ needs.create.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
+#             Specifically, it merges the new version number (bumped from ${{ needs.create.outputs.version }} to ${{ steps.next.outputs.version }}) back into the `main` branch.
 
-            Maintainers should review the [release notes][RELEASES.md] for ${{ needs.create.outputs.version }} and make updates directly to the [release branch][branch].
+#             Maintainers should review the [release notes][RELEASES.md] for ${{ needs.create.outputs.version }} and make updates directly to the [release branch][branch].
 
-            If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ needs.create.outputs.version }}` branch.
+#             If any issues arise on the `main` branch before the release is made then the issue should be fixed on `main` and backported to the `release-${{ needs.create.outputs.version }}` branch.
 
-            [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ needs.create.outputs.version }}/RELEASES.md
-            [branch]: https://github.com/${{ github.repository }}/tree/release-${{ needs.create.outputs.version }}
+#             [RELEASES.md]: https://github.com/${{ github.repository }}/blob/release-${{ needs.create.outputs.version }}/RELEASES.md
+#             [branch]: https://github.com/${{ github.repository }}/tree/release-${{ needs.create.outputs.version }}

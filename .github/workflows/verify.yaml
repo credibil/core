@@ -17,7 +17,3 @@ on:
 jobs:
   verify:
     uses: credibil/pipeline/.github/workflows/verify.yaml@main
-    # with:
-    #   toolchain: stable
-    #   target: x86_64-unknown-linux-gnu
-    #   features: "full"
