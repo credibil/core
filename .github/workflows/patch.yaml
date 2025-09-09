@@ -4,48 +4,5 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  patch:
     uses: credibil/pipeline/.github/workflows/patch.yaml@main
-
-# permissions:
-#   contents: write
-
-# jobs:
-#   skip:
-#     name: Skipped
-#     if: ${{ !startsWith(github.ref_name, 'release-') }}
-#     runs-on: ubuntu-latest
-#     steps:
-#       - run: |
-#           echo "This workflow only runs on the 'release-*' branches"
-#           exit 1
-          
-#   # Increment patch version and update RELEASES.md
-#   # Push back to the release-<version> branch for review and publishing
-#   patch:
-#     name: Bump patch version
-#     if: startsWith(github.ref_name, 'release-')
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v5
-        
-#       - name: Set git identity
-#         uses: ./.github/actions/git-identity
-
-#       - name: Install cargo-release
-#         uses: taiki-e/install-action@v2
-#         with:
-#           tool: cargo-release
-
-#       - name: Bump version
-#         run: cargo release version patch --execute --no-confirm
-
-#       - name: Patch version
-#         id: patch
-#         uses: ./.github/actions/cargo-version
-
-#       - name: Update release notes
-#         uses: ./.github/actions/release-notes
-#         with:
-#           version: ${{ steps.patch.outputs.version }}
-#           branch: ${{ github.ref_name }}
