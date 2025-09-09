@@ -2,6 +2,7 @@
 //!
 //! Initialize the OpenTelemetry collectors and exporters.
 
+use anyhow::anyhow;
 use std::env;
 use std::sync::OnceLock;
 
@@ -73,7 +74,7 @@ impl Telemetry {
     /// subscriber fails.
     pub fn build(self) -> Result<()> {
         let resource = Resource::from(&self);
-        RESOURCE.set(resource).expect("Resource already set");
+        RESOURCE.set(resource).map_err(|_| anyhow!("failed to set resource"))?;
 
         // metrics
         let meter_provider = init_metrics(self.endpoint.as_deref())?;
@@ -129,6 +130,10 @@ fn init_metrics(endpoint: Option<&str>) -> Result<SdkMeterProvider> {
 
 /// Returns a reference to the OpenTelemetry [`Resource`] used to initialize
 /// telemetry for a service.
+///
+/// # Panics
+/// Panics if the resource has not been set, which indicates that telemetry
+/// has not been initialized
 pub fn resource() -> &'static Resource {
     RESOURCE.get().expect("Resource not set")
 }
