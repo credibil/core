@@ -4,6 +4,5 @@ channel = "stable"
 components = ["clippy", "miri", "rust-src", "rustfmt"]
 targets = [
   "aarch64-apple-darwin",
-  "x86_64-apple-darwin",
   "wasm32-wasip2",
 ]
