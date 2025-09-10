@@ -1,4 +1,65 @@
 
 # cargo-vet audits file
+# use: `cargo vet suggest` to recommend audits to import or authors to trust
 
 [audits]
+
+[[trusted.anyhow]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-10-05"
+end = "2026-09-10"
+
+[[trusted.async-trait]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-07-23"
+end = "2026-09-10"
+
+[[trusted.js-sys]]
+criteria = "safe-to-deploy"
+user-id = 1                 # Alex Crichton (alexcrichton)
+start = "2019-03-04"
+end = "2026-09-10"
+
+[[trusted.proc-macro2]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-04-23"
+end = "2026-09-10"
+
+[[trusted.rustversion]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-07-08"
+end = "2026-09-10"
+
+[[trusted.ryu]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-05-02"
+end = "2026-09-10"
+
+[[trusted.serde_json]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-02-28"
+end = "2026-09-10"
+
+[[trusted.syn]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-03-01"
+end = "2026-09-10"
+
+[[trusted.thiserror]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-10-09"
+end = "2026-09-10"
+
+[[trusted.thiserror-impl]]
+criteria = "safe-to-deploy"
+user-id = 3618              # David Tolnay (dtolnay)
+start = "2019-10-09"
+end = "2026-09-10"
