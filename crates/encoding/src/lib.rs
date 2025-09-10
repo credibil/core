@@ -25,7 +25,7 @@ pub fn form_encode<T: Serialize>(value: &T) -> Result<Vec<(String, String)>> {
         .iter()
         .map(|(k, v)| {
             let s = if let Value::String(s) = v { s } else { &v.to_string() };
-            (k.to_string(), utf8_percent_encode(s, UNRESERVED).to_string())
+            (k.clone(), utf8_percent_encode(s, UNRESERVED).to_string())
         })
         .collect::<Vec<(String, String)>>();
 
@@ -77,7 +77,7 @@ pub fn form_decode<T: DeserializeOwned>(form: &[(String, String)]) -> Result<T> 
         } else {
             Value::String(decoded.to_string())
         };
-        map.insert(key.to_string(), value);
+        map.insert(key.clone(), value);
     }
 
     Ok(serde_json::from_value(Value::Object(map))?)
