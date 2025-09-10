@@ -119,7 +119,7 @@ end = "2026-09-10"
 
 [[trusted.lock_api]]
 criteria = "safe-to-deploy"
-user-id = 2915 # Amanieu d'Antras (Amanieu)
+user-id = 2915
 start = "2019-05-04"
 end = "2026-09-10"
 
@@ -137,13 +137,13 @@ end = "2026-09-10"
 
 [[trusted.parking_lot]]
 criteria = "safe-to-deploy"
-user-id = 2915 # Amanieu d'Antras (Amanieu)
+user-id = 2915
 start = "2019-05-04"
 end = "2026-09-10"
 
 [[trusted.parking_lot_core]]
 criteria = "safe-to-deploy"
-user-id = 2915 # Amanieu d'Antras (Amanieu)
+user-id = 2915
 start = "2019-05-04"
 end = "2026-09-10"
 
@@ -203,7 +203,7 @@ end = "2026-09-10"
 
 [[trusted.scopeguard]]
 criteria = "safe-to-deploy"
-user-id = 2915 # Amanieu d'Antras (Amanieu)
+user-id = 2915
 start = "2020-02-16"
 end = "2026-09-10"
 
