@@ -39,6 +39,18 @@ user-id = 55123 # rust-lang-owner
 start = "2022-10-29"
 end = "2026-09-10"
 
+[[trusted.find-msvc-tools]]
+criteria = "safe-to-deploy"
+user-id = 539 # Josh Stone (cuviper)
+start = "2025-08-29"
+end = "2026-09-10"
+
+[[trusted.form_urlencoded]]
+criteria = "safe-to-deploy"
+user-id = 1139 # Manish Goregaokar (Manishearth)
+start = "2021-02-19"
+end = "2026-09-10"
+
 [[trusted.h2]]
 criteria = "safe-to-deploy"
 user-id = 359 # Sean McArthur (seanmonstar)
@@ -133,6 +145,12 @@ end = "2026-09-10"
 criteria = "safe-to-deploy"
 user-id = 2915 # Amanieu d'Antras (Amanieu)
 start = "2019-05-04"
+end = "2026-09-10"
+
+[[trusted.potential_utf]]
+criteria = "safe-to-deploy"
+user-id = 1139 # Manish Goregaokar (Manishearth)
+start = "2024-11-23"
 end = "2026-09-10"
 
 [[trusted.proc-macro2]]
@@ -267,6 +285,18 @@ user-id = 10 # Carl Lerche (carllerche)
 start = "2019-04-27"
 end = "2026-09-10"
 
+[[trusted.unicode-ident]]
+criteria = "safe-to-deploy"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2021-10-02"
+end = "2026-09-10"
+
+[[trusted.url]]
+criteria = "safe-to-deploy"
+user-id = 1139 # Manish Goregaokar (Manishearth)
+start = "2021-02-18"
+end = "2026-09-10"
+
 [[trusted.valuable]]
 criteria = "safe-to-deploy"
 user-id = 10 # Carl Lerche (carllerche)
@@ -277,6 +307,12 @@ end = "2026-09-10"
 criteria = "safe-to-deploy"
 user-id = 1 # Alex Crichton (alexcrichton)
 start = "2020-06-03"
+end = "2026-09-10"
+
+[[trusted.wasip2]]
+criteria = "safe-to-deploy"
+user-id = 1 # Alex Crichton (alexcrichton)
+start = "2025-09-09"
 end = "2026-09-10"
 
 [[trusted.wasm-bindgen]]

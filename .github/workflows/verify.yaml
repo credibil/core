@@ -25,10 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/install@cargo-outdated
-      # - run: |
-      #     sudo apt-get update
-      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
       - run: cargo clippy --all-features
         
   test:
@@ -38,9 +34,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@nightly
       - uses: taiki-e/install-action@nextest
-      # - run: |
-      #     sudo apt-get update
-      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
       - run: cargo nextest run --all --all-features
 
   test-doc:
@@ -49,9 +42,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@nightly
-      # - run: |
-      #     sudo apt-get update
-      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
       - run: cargo test --doc --all-features
 
   vet:
@@ -84,8 +74,5 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/install@cargo-outdated
-      # - run: |
-      #     sudo apt-get update
-      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
       - run: cargo outdated --workspace --exit-code 1
 
