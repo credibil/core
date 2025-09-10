@@ -1,3 +1,4 @@
 # Core
 
-Core libraries shared by Credibil projects.
+Core libraries shared by Credibil projects only. This is not intended to be a 
+standalone library.
