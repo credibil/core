@@ -2,18 +2,90 @@ name: Verify
 
 on:
   push:
-    paths:
-      - '**/src/**'
-      - '**/tests/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-  pull_request:
-    paths:
-      - '**/src/**'
-      - '**/tests/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+    # paths:
+    #   - '**/src/**'
+    #   - '**/tests/**'
+    #   - 'Cargo.toml'
+    #   - 'Cargo.lock'
+  # pull_request:
+  #   paths:
+  #     - '**/src/**'
+  #     - '**/tests/**'
+  #     - 'Cargo.toml'
+  #     - 'Cargo.lock'
+
+# jobs:
+#   verify:
+#     uses: credibil/pipeline/.github/workflows/verify.yaml@main
+
 
 jobs:
-  verify:
-    uses: credibil/pipeline/.github/workflows/verify.yaml@main
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/install@cargo-outdated
+      # - run: |
+      #     sudo apt-get update
+      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
+      - run: cargo clippy --all-features
+        
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: taiki-e/install-action@nextest
+      # - run: |
+      #     sudo apt-get update
+      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
+      - run: cargo nextest run --all --all-features
+
+  test-doc:
+    name: Test docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+      # - run: |
+      #     sudo apt-get update
+      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
+      - run: cargo test --doc --all-features
+
+  vet:
+    name: Vet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-vet
+      - run: cargo vet
+        
+  miri:
+    name: Miri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@miri
+      - uses: taiki-e/install-action@nextest
+      - run: |
+          rustup override set nightly
+          cargo miri setup
+          cargo miri nextest run --no-tests=pass
+        # env:
+        #   MIRIFLAGS: -Zmiri-strict-provenance
+
+  outdated:
+    name: Outdated
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/install@cargo-outdated
+      # - run: |
+      #     sudo apt-get update
+      #     sudo apt-get -y install libwebkit2gtk-4.1-dev
+      - run: cargo outdated --workspace --exit-code 1
+
