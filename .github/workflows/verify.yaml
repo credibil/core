@@ -52,7 +52,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-vet
-      - run: cargo vet
+      - run: cargo vet --locked
         
   miri:
     name: Miri
