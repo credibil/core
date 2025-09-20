@@ -2,11 +2,10 @@
 //!
 //! Initialize the OpenTelemetry collectors and exporters.
 
-use anyhow::anyhow;
 use std::env;
 use std::sync::OnceLock;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry::{KeyValue, global};
 use opentelemetry_otlp::{MetricExporter, SpanExporter, WithExportConfig};
