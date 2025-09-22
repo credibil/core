@@ -16,7 +16,7 @@ use tracing::Instrument;
 
 /// Layer that records request latency and emits OpenTelemetry metrics.
 #[derive(Clone)]
-pub struct TracingLayer {}
+pub struct TracingLayer;
 
 impl Default for TracingLayer {
     fn default() -> Self {
