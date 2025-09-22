@@ -47,7 +47,7 @@ jobs:
         echo "version=$incremented" >> $GITHUB_OUTPUT
 
     - run: |
-        sed -i '' -e "s/^version = \".*\"/version = \"$incremented\"/" Cargo.toml
+        sed -i '' -e 's/^version = \".*\"/version = \"$incremented\"/' Cargo.toml
         git commit -am "Increment Cargo version to $incremented"
     
     - run: cat Cargo.toml
