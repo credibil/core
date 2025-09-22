@@ -3,6 +3,7 @@ name = "credibil-api"
 description = "API types for Credibil"
 readme = "README.md"
 authors.workspace = true
+categories.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
