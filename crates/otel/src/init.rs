@@ -73,7 +73,7 @@ impl Telemetry {
     /// subscriber fails.
     pub fn build(self) -> Result<()> {
         let resource = Resource::from(&self);
-        RESOURCE.set(resource).map_err(|_| anyhow!("failed to set resource"))?;
+        RESOURCE.set(resource).map_err(|r| anyhow!("failed to set resource: {r:?}"))?;
 
         // metrics
         let meter_provider = init_metrics(self.endpoint.as_deref())?;
