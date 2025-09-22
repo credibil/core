@@ -2,52 +2,7 @@ name: Create Release
 
 on:
   workflow_dispatch:
-    inputs:
-      increment:
-        description: |
-          The version number or one of 'none', 'major', 'minor', 'patch'. 
-          If 'none', the current version is returned.
-        default: none
-
-permissions:
-  contents: read
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v5
-      
-    # uses: credibil/pipeline/.github/workflows/release.yaml@main
-    - name: Increment version
-      if: ${{ inputs.increment != 'none' }}
-      id: increment
-      shell: bash
-      run: |
-        current=$(grep '^version =' Cargo.toml | head -n 1 | sed 's/.*"\(.*\)"/\1/')
-
-        case "${{ inputs.increment }}" in
-          major)
-            IFS='.' read -r major minor patch <<< "$current"
-            incremented="$((major + 1)).0.0"
-            ;;
-          minor)
-            IFS='.' read -r major minor patch <<< "$current"
-            incremented="$major.$((minor + 1)).0"
-            ;;
-          patch)
-            IFS='.' read -r major minor patch <<< "$current"
-            incremented="$major.$minor.$((patch + 1))"
-            ;;
-          *)
-            incremented="${{ inputs.increment }}"
-            ;;
-        esac
-
-        echo "version=$incremented" >> $GITHUB_OUTPUT
-
-    - run: |
-        sed -i -E "s/^version = .*/version = \"${{ steps.increment.outputs.version }}\"/1" Cargo.toml
-        # git commit -am "Increment Cargo version to ${{ steps.increment.outputs.version }}"
-    
-    - run: cat Cargo.toml
+    uses: credibil/pipeline/.github/workflows/release.yaml@main
