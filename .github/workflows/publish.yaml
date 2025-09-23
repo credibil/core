@@ -4,28 +4,5 @@ on:
   workflow_dispatch:
 
 jobs:
-  # publish:
-  #   uses: credibil/pipeline/.github/workflows/publish.yaml@main
-
-  release:
-    name: Create GitHub release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Get release notes
-        id: notes
-        run: |
-          notes=$(cat RELEASES.md)
-          {
-            echo 'notes<<EOF'
-            echo "${notes}"
-            echo EOF
-          } >> $GITHUB_OUTPUT
-
-          # echo "notes<<EOF" >> $GITHUB_OUTPUT
-          # echo $notes >> $GITHUB_OUTPUT
-          # echo "EOF" >> $GITHUB_OUTPUT
-
-      - run: |
-          echo "Release notes: ${{ steps.notes.outputs.notes }}"
+  publish:
+    uses: credibil/pipeline/.github/workflows/publish.yaml@main
