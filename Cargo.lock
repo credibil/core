@@ -141,7 +141,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "credibil-api"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytes",
  "http",
@@ -153,7 +153,7 @@ dependencies = [
 
 [[package]]
 name = "credibil-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -162,7 +162,7 @@ dependencies = [
 
 [[package]]
 name = "credibil-encoding"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "percent-encoding",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "credibil-otel"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "http",
