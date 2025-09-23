@@ -3,15 +3,11 @@ name: Publish Crates
 
 on:
   workflow_dispatch:
-
+  push:
+    tags:
+    - 'v*'
+    
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v5
-      
-    - name: Cargo publish
-      run: cargo publish --workspace --registry credibil
-      env:
-        CARGO_REGISTRIES_CREDIBIL_TOKEN: ${{ secrets.CARGO_REGISTRIES_CREDIBIL_TOKEN }}
+  crates:
+    uses: credibil/pipeline/.github/workflows/crates.yaml@main
  
