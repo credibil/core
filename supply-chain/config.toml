@@ -43,7 +43,7 @@ version = "0.4.42"
 criteria = "safe-to-deploy"
 
 [[exemptions.credibil-core]]
-version = "0.2.0"
+version = "0.3.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.find-msvc-tools]]
