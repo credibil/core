@@ -17,9 +17,9 @@ jobs:
         id: notes
         run: |
           notes=$(cat RELEASES.md)
-          echo notes<<EOF >> $GITHUB_OUTPUT
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
           echo $notes >> $GITHUB_OUTPUT
-          echo EOF >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - run: |
           echo "Release notes: ${{ steps.notes.outputs.notes }}"
