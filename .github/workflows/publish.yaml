@@ -17,15 +17,9 @@ jobs:
         id: notes
         run: |
           notes=$(cat RELEASES.md)
-          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
-          echo $notes >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo notes<<EOF >> $GITHUB_OUTPUT
+          echo $notes >> $GITHUB_OUTPUT
+          echo EOF >> $GITHUB_OUTPUT
 
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: v0.2.0
-          name: Release v0.2.0
-          body: ${{ steps.notes.outputs.notes }}
-          immutableCreate: true
-          # artifacts: ${{ inputs.artifacts }}
+      - run: |
+          echo "Release notes: ${{ steps.notes.outputs.notes }}"
