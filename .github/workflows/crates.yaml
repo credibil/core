@@ -8,15 +8,5 @@ on:
     - 'v*'
     
 jobs:
-  # crates:
-  #   uses: credibil/pipeline/.github/workflows/crates.yaml@main
   crates:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v5
-      
-    - name: Publish workspace crates
-      # if: startsWith(github.ref_name, 'release-')
-      run: cargo publish --workspace --registry credibil
-      env:
-        CARGO_REGISTRIES_CREDIBIL_TOKEN: ${{ secrets.CARGO_REGISTRIES_CREDIBIL_TOKEN }}
+    uses: credibil/pipeline/.github/workflows/crates.yaml@main
