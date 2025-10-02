@@ -133,8 +133,8 @@ fn init_metrics(endpoint: Option<&str>) -> Result<SdkMeterProvider> {
 /// # Panics
 /// Panics if the resource has not been set, which indicates that telemetry
 /// has not been initialized
-pub fn resource() -> &'static Resource {
-    RESOURCE.get().expect("Resource not set")
+pub fn resource() -> Option<&'static Resource> {
+    RESOURCE.get()
 }
 
 impl From<&Telemetry> for Resource {
