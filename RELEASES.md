@@ -1,6 +1,6 @@
 ## 0.3.0
 
-Unreleased
+Released 2025-10-03
 
 ### Added
 
