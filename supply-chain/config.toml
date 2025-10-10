@@ -23,7 +23,7 @@ url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/
 audit-as-crates-io = true
 
 [[exemptions.addr2line]]
-version = "0.24.2"
+version = "0.25.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.atomic-waker]]
@@ -35,7 +35,7 @@ version = "2.9.4"
 criteria = "safe-to-deploy"
 
 [[exemptions.cc]]
-version = "1.2.38"
+version = "1.2.40"
 criteria = "safe-to-deploy"
 
 [[exemptions.chrono]]
@@ -43,15 +43,11 @@ version = "0.4.42"
 criteria = "safe-to-deploy"
 
 [[exemptions.credibil-core]]
-version = "0.3.0"
+version = "0.4.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.find-msvc-tools]]
-version = "0.1.2"
-criteria = "safe-to-deploy"
-
-[[exemptions.form_urlencoded]]
-version = "1.2.2"
+version = "0.1.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.futures-task]]
@@ -66,16 +62,12 @@ criteria = "safe-to-deploy"
 version = "0.3.3"
 criteria = "safe-to-deploy"
 
+[[exemptions.gimli]]
+version = "0.32.3"
+criteria = "safe-to-deploy"
+
 [[exemptions.hyper-timeout]]
 version = "0.5.2"
-criteria = "safe-to-deploy"
-
-[[exemptions.iana-time-zone]]
-version = "0.1.64"
-criteria = "safe-to-deploy"
-
-[[exemptions.idna]]
-version = "1.1.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.io-uring]]
@@ -95,7 +87,7 @@ version = "0.14.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.js-sys]]
-version = "0.3.80"
+version = "0.3.81"
 criteria = "safe-to-deploy"
 
 [[exemptions.log]]
@@ -111,7 +103,7 @@ version = "0.50.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.object]]
-version = "0.36.7"
+version = "0.36.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.once_cell]]
@@ -119,27 +111,23 @@ version = "1.21.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.opentelemetry]]
-version = "0.30.0"
+version = "0.31.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.opentelemetry-http]]
-version = "0.30.0"
+version = "0.31.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.opentelemetry-otlp]]
-version = "0.30.0"
+version = "0.31.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.opentelemetry-proto]]
-version = "0.30.0"
+version = "0.31.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.opentelemetry_sdk]]
-version = "0.30.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.percent-encoding]]
-version = "2.3.2"
+version = "0.31.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.pin-project]]
@@ -155,11 +143,15 @@ version = "0.2.21"
 criteria = "safe-to-deploy"
 
 [[exemptions.prost]]
-version = "0.13.5"
+version = "0.14.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.prost-derive]]
-version = "0.13.5"
+version = "0.14.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.quote]]
+version = "1.0.41"
 criteria = "safe-to-deploy"
 
 [[exemptions.r-efi]]
@@ -170,12 +162,20 @@ criteria = "safe-to-deploy"
 version = "0.7.1"
 criteria = "safe-to-deploy"
 
+[[exemptions.stable_deref_trait]]
+version = "1.2.1"
+criteria = "safe-to-deploy"
+
 [[exemptions.sync_wrapper]]
 version = "1.0.2"
 criteria = "safe-to-deploy"
 
 [[exemptions.tonic]]
-version = "0.13.1"
+version = "0.14.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.tonic-prost]]
+version = "0.14.2"
 criteria = "safe-to-deploy"
 
 [[exemptions.tower-layer]]
@@ -199,39 +199,35 @@ version = "0.2.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.tracing-opentelemetry]]
-version = "0.31.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.url]]
-version = "2.5.7"
+version = "0.32.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen]]
-version = "0.2.103"
+version = "0.2.104"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen-backend]]
-version = "0.2.103"
+version = "0.2.104"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen-futures]]
-version = "0.4.53"
+version = "0.4.54"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen-macro]]
-version = "0.2.103"
+version = "0.2.104"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen-macro-support]]
-version = "0.2.103"
+version = "0.2.104"
 criteria = "safe-to-deploy"
 
 [[exemptions.wasm-bindgen-shared]]
-version = "0.2.103"
+version = "0.2.104"
 criteria = "safe-to-deploy"
 
 [[exemptions.web-sys]]
-version = "0.3.80"
+version = "0.3.81"
 criteria = "safe-to-deploy"
 
 [[exemptions.web-time]]
