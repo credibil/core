@@ -26,7 +26,6 @@ use std::ops::Deref;
 use std::pin::Pin;
 
 use http::StatusCode;
-// use tracing::instrument;
 
 /// Build an API `Client` to execute the request.
 ///
@@ -51,8 +50,8 @@ impl<P: Send + Sync> Client<P> {
     /// Create a new `Request` with no headers.
     pub const fn request<B: Body, U, E>(
         &'_ self, body: B,
-    ) -> RequestBuilder<'_, P, NoOwner, Empty, B, U, E> {
-        RequestBuilder::new(self, body)
+    ) -> Router<'_, P, NoOwner, Empty, B, U, E> {
+        Router::new(self, body)
     }
 }
 
@@ -65,7 +64,7 @@ impl<P: Send + Sync> Client<P> {
 /// - `U`: Expected response type
 /// - `E`: Expected error type
 #[derive(Debug)]
-pub struct RequestBuilder<'a, P, O, H, B, U, E>
+pub struct Router<'a, P, O, H, B, U, E>
 where
     P: Send + Sync,
     B: Body,
@@ -73,8 +72,7 @@ where
 {
     client: &'a Client<P>,
     owner: O,
-    headers: H,
-    body: B,
+    request: Request<B, H>,
     _phantom: PhantomData<(U, E)>,
 }
 
@@ -85,61 +83,64 @@ pub struct NoOwner;
 #[doc(hidden)]
 pub struct OwnerSet<'a>(&'a str);
 
-impl<'a, P, B, U, E> RequestBuilder<'a, P, NoOwner, Empty, B, U, E>
+impl<'a, P, B, U, E> Router<'a, P, NoOwner, Empty, B, U, E>
 where
     P: Send + Sync,
     B: Body,
 {
-    /// Create a new `Request` instance.
+    /// Create a new `Router` instance.
     pub const fn new(client: &'a Client<P>, body: B) -> Self {
         Self {
             client,
             owner: NoOwner,
-            headers: Empty,
-            body,
+            request: Request { body, headers: Empty },
             _phantom: PhantomData,
         }
     }
 }
 
-impl<'a, P, H, B, U, E> RequestBuilder<'a, P, NoOwner, H, B, U, E>
+// No owner.
+impl<'a, P, H, B, U, E> Router<'a, P, NoOwner, H, B, U, E>
 where
     P: Send + Sync,
     B: Body,
     H: Headers,
 {
-    /// Set the headers for the request.
+    /// Set the owner (tenant).
     #[must_use]
-    pub fn owner<'o>(self, owner: &'o str) -> RequestBuilder<'a, P, OwnerSet<'o>, H, B, U, E> {
-        RequestBuilder {
+    pub fn owner<'o>(self, owner: &'o str) -> Router<'a, P, OwnerSet<'o>, H, B, U, E> {
+        Router {
             client: self.client,
-            headers: self.headers,
             owner: OwnerSet(owner),
-            body: self.body,
+            request: self.request,
             _phantom: PhantomData,
         }
     }
 }
 
-impl<'a, P, O, B, U, E> RequestBuilder<'a, P, O, Empty, B, U, E>
+/// Empty headers.
+impl<'a, P, O, B, U, E> Router<'a, P, O, Empty, B, U, E>
 where
     P: Send + Sync,
     B: Body,
 {
     /// Set request headers.
     #[must_use]
-    pub fn headers<H: Headers>(self, headers: H) -> RequestBuilder<'a, P, O, H, B, U, E> {
-        RequestBuilder {
+    pub fn headers<H: Headers>(self, headers: H) -> Router<'a, P, O, H, B, U, E> {
+        Router {
             client: self.client,
             owner: self.owner,
-            headers,
-            body: self.body,
+            request: Request {
+                body: self.request.body,
+                headers,
+            },
             _phantom: PhantomData,
         }
     }
 }
 
-impl<'a, P, H, B, U, E> IntoFuture for RequestBuilder<'a, P, OwnerSet<'a>, H, B, U, E>
+// Owner set, maybe headers set: request can be routed to it's handler.
+impl<'a, P, H, B, U, E> Router<'a, P, OwnerSet<'a>, H, B, U, E>
 where
     P: Send + Sync,
     H: Headers + 'a,
@@ -148,15 +149,32 @@ where
     E: Send,
     Request<B, H>: Handler<U, P, Error = E>,
 {
+    /// Handle the request by routing it to the appropriate handler.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error from the underlying handler on failure.
+    pub async fn handle(self) -> Result<Response<U>, E> {
+        self.request.handle(self.owner.0, &self.client.provider).await
+    }
+}
+
+// Implement [`IntoFuture`] so that the request can be awaited directly (without
+// needing to call the `handle` method).
+impl<'a, P, H, B, U, E> IntoFuture for Router<'a, P, OwnerSet<'a>, H, B, U, E>
+where
+    P: Send + Sync,
+    H: Headers + 'a,
+    B: Body + 'a,
+    U: Send + 'a,
+    E: Send + 'a,
+    Request<B, H>: Handler<U, P, Error = E>,
+{
     type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send + 'a>>;
     type Output = Result<Response<U>, E>;
 
     fn into_future(self) -> Self::IntoFuture {
-        let request = Request {
-            body: self.body,
-            headers: self.headers,
-        };
-        Box::pin(request.handle(self.owner.0, &self.client.provider))
+        Box::pin(self.handle())
     }
 }
 
@@ -164,14 +182,14 @@ where
 #[derive(Clone, Debug)]
 pub struct Request<B, H = Empty>
 where
-    B: Body,
     H: Headers,
+    B: Body,
 {
-    /// The request to process.
-    pub body: B,
-
     /// Headers associated with this request.
     pub headers: H,
+
+    /// The request to process.
+    pub body: B,
 }
 
 impl<B: Body> From<B> for Request<B> {
