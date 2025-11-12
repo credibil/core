@@ -27,11 +27,11 @@ use std::pin::Pin;
 
 use http::StatusCode;
 
-/// Build an API `Client` to execute the request.
+/// Build an API client to execute the request.
 ///
 /// The client is the main entry point for making API requests. It holds
 /// the provider configuration and provides methods to create the request
-/// builder.
+/// router.
 #[derive(Clone, Debug)]
 pub struct Client<P: Send + Sync> {
     /// The provider to use while handling of the request.
@@ -50,7 +50,7 @@ impl<P: Send + Sync> Client<P> {
     /// Create a new `Request` with no headers.
     pub const fn request<B: Body, U, E>(
         &'_ self, body: B,
-    ) -> Router<'_, P, NoOwner, Empty, B, U, E> {
+    ) -> Router<'_, P, NoOwner, NoHeaders, B, U, E> {
         Router::new(self, body)
     }
 }
@@ -83,17 +83,20 @@ pub struct NoOwner;
 #[doc(hidden)]
 pub struct OwnerSet<'a>(&'a str);
 
-impl<'a, P, B, U, E> Router<'a, P, NoOwner, Empty, B, U, E>
+impl<'a, P, B, U, E> Router<'a, P, NoOwner, NoHeaders, B, U, E>
 where
     P: Send + Sync,
     B: Body,
 {
     /// Create a new `Router` instance.
-    pub const fn new(client: &'a Client<P>, body: B) -> Self {
+    const fn new(client: &'a Client<P>, body: B) -> Self {
         Self {
             client,
             owner: NoOwner,
-            request: Request { body, headers: Empty },
+            request: Request {
+                body,
+                headers: NoHeaders,
+            },
             _phantom: PhantomData,
         }
     }
@@ -118,8 +121,8 @@ where
     }
 }
 
-/// Empty headers.
-impl<'a, P, O, B, U, E> Router<'a, P, O, Empty, B, U, E>
+/// [`NoHeaders`] headers.
+impl<'a, P, O, B, U, E> Router<'a, P, O, NoHeaders, B, U, E>
 where
     P: Send + Sync,
     B: Body,
@@ -180,7 +183,7 @@ where
 
 /// A request to process.
 #[derive(Clone, Debug)]
-pub struct Request<B, H = Empty>
+pub struct Request<B, H = NoHeaders>
 where
     H: Headers,
     B: Body,
@@ -194,13 +197,16 @@ where
 
 impl<B: Body> From<B> for Request<B> {
     fn from(body: B) -> Self {
-        Self { body, headers: Empty }
+        Self {
+            body,
+            headers: NoHeaders,
+        }
     }
 }
 
 /// Top-level response data structure common to all handler.
 #[derive(Clone, Debug)]
-pub struct Response<O, H = Empty>
+pub struct Response<O, H = NoHeaders>
 where
     H: Headers,
 {
@@ -256,5 +262,5 @@ pub trait Headers: Clone + Debug + Send + Sync {}
 
 /// Implement empty headers for use by handlers that do not require headers.
 #[derive(Clone, Debug)]
-pub struct Empty;
-impl Headers for Empty {}
+pub struct NoHeaders;
+impl Headers for NoHeaders {}
