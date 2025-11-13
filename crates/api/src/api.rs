@@ -33,12 +33,12 @@ use http::StatusCode;
 /// the provider configuration and provides methods to create the request
 /// router.
 #[derive(Clone, Debug)]
-pub struct Client<P: Send + Sync> {
+pub struct Client<P: Provider> {
     /// The provider to use while handling of the request.
     pub provider: P,
 }
 
-impl<P: Send + Sync> Client<P> {
+impl<P: Provider> Client<P> {
     /// Create a new `Client`.
     #[must_use]
     pub const fn new(provider: P) -> Self {
@@ -46,7 +46,7 @@ impl<P: Send + Sync> Client<P> {
     }
 }
 
-impl<P: Send + Sync> Client<P> {
+impl<P: Provider> Client<P> {
     /// Create a new `Request` with no headers.
     pub const fn request<B: Body, U, E>(
         &'_ self, body: B,
@@ -57,16 +57,10 @@ impl<P: Send + Sync> Client<P> {
 
 /// A type-safe request builder that uses the type system to ensure required
 /// fields are set before execution.
-///
-/// The builder uses types to track its state:
-/// - `O`: Owner state (`NoOwner` or `OwnerSet`)
-/// - `H`: Header state (`NoHeader` or `HeaderSet`)
-/// - `U`: Expected response type
-/// - `E`: Expected error type
 #[derive(Debug)]
 pub struct Router<'a, P, O, H, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     B: Body,
     H: Headers,
 {
@@ -85,7 +79,7 @@ pub struct OwnerSet<'a>(&'a str);
 
 impl<'a, P, B, U, E> Router<'a, P, NoOwner, NoHeaders, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     B: Body,
 {
     /// Create a new `Router` instance.
@@ -105,7 +99,7 @@ where
 // No owner.
 impl<'a, P, H, B, U, E> Router<'a, P, NoOwner, H, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     B: Body,
     H: Headers,
 {
@@ -124,7 +118,7 @@ where
 /// [`NoHeaders`] headers.
 impl<'a, P, O, B, U, E> Router<'a, P, O, NoHeaders, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     B: Body,
 {
     /// Set request headers.
@@ -145,7 +139,7 @@ where
 // Owner set, maybe headers set: request can be routed to it's handler.
 impl<'a, P, H, B, U, E> Router<'a, P, OwnerSet<'a>, H, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     H: Headers + 'a,
     B: Body + 'a,
     U: Send + 'a,
@@ -166,7 +160,7 @@ where
 // needing to call the `handle` method).
 impl<'a, P, H, B, U, E> IntoFuture for Router<'a, P, OwnerSet<'a>, H, B, U, E>
 where
-    P: Send + Sync,
+    P: Provider,
     H: Headers + 'a,
     B: Body + 'a,
     U: Send + 'a,
@@ -264,3 +258,7 @@ pub trait Headers: Clone + Debug + Send + Sync {}
 #[derive(Clone, Debug)]
 pub struct NoHeaders;
 impl Headers for NoHeaders {}
+
+pub trait Provider: Send + Sync {}
+
+impl<T> Provider for T where T: Send + Sync {}
