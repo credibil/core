@@ -247,7 +247,7 @@ impl<B: Body> From<B> for Request<B> {
     }
 }
 
-/// Top-level response data structure common to all handler.
+/// Top-level response data structure common to all handlers.
 #[derive(Clone, Debug)]
 pub struct Response<B, H = NoHeaders>
 where
