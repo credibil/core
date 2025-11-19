@@ -1,6 +1,10 @@
 
 # cargo-vet imports lock
 
+[[unpublished.credibil-core]]
+version = "0.6.0"
+audited_as = "1.0.0"
+
 [[publisher.aho-corasick]]
 version = "1.1.4"
 when = "2025-10-28"
@@ -604,6 +608,24 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "0.1.0 -> 0.2.0"
 notes = "Some unsafe code, but not more than before. Nothing awry."
+
+[[audits.bytecode-alliance.audits.nu-ansi-term]]
+who = "Pat Hickey <phickey@fastly.com>"
+criteria = "safe-to-deploy"
+version = "0.46.0"
+notes = "one use of unsafe to call windows specific api to get console handle."
+
+[[audits.bytecode-alliance.audits.nu-ansi-term]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+delta = "0.46.0 -> 0.50.1"
+notes = "Lots of stylistic/rust-related chanegs, plus new features, but nothing out of the ordrinary."
+
+[[audits.bytecode-alliance.audits.nu-ansi-term]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+delta = "0.50.1 -> 0.50.3"
+notes = "CI changes, Rust changes, nothing out of the ordinary."
 
 [[audits.bytecode-alliance.audits.num-traits]]
 who = "Andrew Brown <andrew.brown@intel.com>"

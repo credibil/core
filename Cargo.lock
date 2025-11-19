@@ -141,6 +141,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "credibil-error"
+version = "0.6.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "credibil-otel"
 version = "0.6.0"
 dependencies = [

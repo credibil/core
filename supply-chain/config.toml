@@ -31,7 +31,7 @@ version = "0.4.42"
 criteria = "safe-to-deploy"
 
 [[exemptions.credibil-core]]
-version = "0.5.0"
+version = "0.6.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.futures-task]]
@@ -92,10 +92,6 @@ criteria = "safe-to-deploy"
 
 [[exemptions.js-sys]]
 version = "0.3.82"
-criteria = "safe-to-deploy"
-
-[[exemptions.nu-ansi-term]]
-version = "0.50.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.once_cell]]
