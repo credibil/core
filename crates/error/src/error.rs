@@ -1,5 +1,3 @@
-use std::error::Error as StdError;
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
@@ -122,7 +120,7 @@ impl Error {
             Err(_) => return Self::ImATeaPot(raw),
         };
 
-        let code = obj.get("code").and_then(Value::as_u64).unwrap_or(500);
+        let code = obj.get("code").and_then(Value::as_u64).unwrap_or(418);
         let description =
             obj.get("description").and_then(Value::as_str).unwrap_or(&raw).to_string();
 
@@ -145,8 +143,8 @@ impl From<anyhow::Error> for Error {
     }
 }
 
-impl From<Box<dyn StdError>> for Error {
-    fn from(err: Box<dyn StdError>) -> Self {
-        Self::from_string(err.to_string())
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Self::BadRequest(err.to_string())
     }
 }
