@@ -28,7 +28,7 @@ pub enum Error {
     Gone(String),
 
     /// I'm a teapot (418)
-    /// Reserved for all other errors
+    /// Reserved for all other/unknown errors
     #[error("{{\"code\": 418, \"description\": \"{0}\"}}")]
     ImATeaPot(String),
 
@@ -147,6 +147,6 @@ impl From<anyhow::Error> for Error {
 
 impl From<Box<dyn StdError>> for Error {
     fn from(err: Box<dyn StdError>) -> Self {
-        Self::ServerError(err.to_string())
+        Self::from_string(err.to_string())
     }
 }
