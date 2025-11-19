@@ -34,8 +34,8 @@ user-login = "fitzgen"
 user-name = "Nick Fitzgerald"
 
 [[publisher.bytes]]
-version = "1.10.1"
-when = "2025-03-05"
+version = "1.11.0"
+when = "2025-11-14"
 user-id = 6741
 user-login = "Darksonn"
 user-name = "Alice Ryhl"
