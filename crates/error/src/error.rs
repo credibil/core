@@ -3,6 +3,10 @@ use serde_json::Value;
 use thiserror::Error;
 use tracing::{error, info, warn};
 
+/// HTTP status code for "I'm a teapot"
+/// Used as a default for unknown errors
+const TEA_POT: u64 = 418;
+
 #[derive(Clone, Debug, Deserialize, Eq, Error, PartialEq, Serialize)]
 pub enum Error {
     /// Bad Request (400)
@@ -64,7 +68,7 @@ impl Error {
 
     /// Returns the error description.
     #[must_use]
-    pub fn description(&self) -> String {
+    pub fn description(&self) -> &str {
         match self {
             Self::BadRequest(desc)
             | Self::Unauthorized(desc)
@@ -73,7 +77,7 @@ impl Error {
             | Self::ImATeaPot(desc)
             | Self::ServerError(desc)
             | Self::BadGateway(desc)
-            | Self::ServiceUnavailable(desc) => desc.clone(),
+            | Self::ServiceUnavailable(desc) => desc,
         }
     }
 
@@ -114,13 +118,20 @@ impl Error {
         }
     }
 
+    /// Parses a string into an `Error` variant.
+    ///
+    /// The expected input format is a JSON string containing a `code` (u64) and a `description` (string) field.
+    /// For example: `{"code": 400, "description": "Invalid input"}`
+    ///
+    /// If parsing fails or the input does not match the expected format, returns the `ImATeaPot` variant
+    /// with the raw string as the description.
     pub fn from_string(raw: String) -> Self {
         let obj: serde_json::Value = match serde_json::from_str(&raw) {
             Ok(v) => v,
             Err(_) => return Self::ImATeaPot(raw),
         };
 
-        let code = obj.get("code").and_then(Value::as_u64).unwrap_or(418);
+        let code = obj.get("code").and_then(Value::as_u64).unwrap_or(TEA_POT);
         let description =
             obj.get("description").and_then(Value::as_str).unwrap_or(&raw).to_string();
 

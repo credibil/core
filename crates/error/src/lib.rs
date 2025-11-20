@@ -47,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn from_serdejson_error() {
+    fn from_serde_json_error() {
         let serde_result: Result<serde_json::Value, serde_json::Error> =
             serde_json::from_str("invalid json");
         let serde_err = serde_result.unwrap_err();
