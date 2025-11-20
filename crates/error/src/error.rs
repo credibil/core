@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 
 /// HTTP status code for "I'm a teapot"
 /// Used as a default for unknown errors
@@ -93,10 +93,18 @@ impl Error {
                 );
             }
             Self::BadGateway(description) => {
-                error!(monotonic_counter.external_errors = 1, service = %service, topic = %topic, description);
+                error!(
+                    monotonic_counter.external_errors = 1,
+                    service = %service,
+                    topic = %topic,
+                    description
+                );
             }
             Self::ServerError(description) => {
-                error!(monotonic_counter.runtime_errors = 1, service = %service, description);
+                error!(monotonic_counter.runtime_errors = 1,
+                    service = %service,
+                    description
+                );
             }
             Self::BadRequest(description) => {
                 warn!(
@@ -106,14 +114,32 @@ impl Error {
                     description
                 );
             }
-            Self::Unauthorized(description) | Self::NotFound(description) => {
-                info!(description);
+            Self::Unauthorized(description) => {
+                warn!(
+                    monotonic_counter.authorization_errors = 1,
+                    service = %service,
+                    description);
+            }
+            Self::NotFound(description) => {
+                warn!(
+                    monotonic_counter.not_found_errors = 1,
+                    service = %service,
+                    description);
             }
             Self::Gone(description) => {
-                info!(monotonic_counter.stale_data = 1, service = %service, topic = %topic, description);
+                warn!(
+                    monotonic_counter.stale_data = 1,
+                    service = %service,
+                    topic = %topic,
+                    description
+                );
             }
             Self::ImATeaPot(description) => {
-                info!(monotonic_counter.other_errors = 1, service = %service, description);
+                warn!(
+                    monotonic_counter.other_errors = 1,
+                    service = %service,
+                    description
+                );
             }
         }
     }
