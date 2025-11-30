@@ -4,8 +4,9 @@ pub use crate::error::Error;
 
 #[cfg(test)]
 mod tests {
-    use anyhow::Context;
     use std::str::FromStr;
+
+    use anyhow::Context;
 
     use crate::Error;
 
