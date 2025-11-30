@@ -109,8 +109,11 @@ impl FromStr for Error {
 
 impl From<anyhow::Error> for Error {
     fn from(err: anyhow::Error) -> Self {
-        Self::from_str(err.root_cause().to_string().as_str())
-            .unwrap_or_else(|_| Self::ImATeaPot(err.root_cause().to_string()))
+        Self::from_str(err.root_cause().to_string().as_str()).unwrap_or_else(|_| {
+            let stack = err.chain().fold(String::new(), |cause, e| format!("{cause} -> {e}"));
+            let stack = stack.trim_start_matches(" -> ").to_string();
+            Self::ServiceUnavailable(stack)
+        })
     }
 }
 
