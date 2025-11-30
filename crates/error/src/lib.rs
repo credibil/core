@@ -4,6 +4,8 @@ pub use crate::error::Error;
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use crate::Error;
 
     #[test]
@@ -59,17 +61,19 @@ mod tests {
     #[test]
     fn from_string() {
         let json_raw = r#"{"code":400,"description":"Bad Request"}"#.to_string();
-        let err = Error::from_string(json_raw);
+        let err = Error::from_str(&json_raw).unwrap();
         assert_eq!(err.code(), 400);
         assert_eq!(err.description(), "Bad Request".to_string());
 
         let json_incompatible_raw = r#"{"status": 500, "message":"Error Occurred"}"#.to_string();
-        let err = Error::from_string(json_incompatible_raw.clone());
+        let err = Error::from_str(&json_incompatible_raw)
+            .unwrap_or_else(|_| Error::ImATeaPot(json_incompatible_raw.clone()));
         assert_eq!(err.code(), 418);
         assert_eq!(err.description(), json_incompatible_raw);
 
         let not_json_raw = "Some random error".to_string();
-        let err = Error::from_string(not_json_raw);
+        let err = Error::from_str(&not_json_raw)
+            .unwrap_or_else(|_| Error::ImATeaPot(not_json_raw.clone()));
         assert_eq!(err.code(), 418);
         assert_eq!(err.description(), "Some random error".to_string());
     }
