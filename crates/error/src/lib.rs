@@ -4,6 +4,7 @@ pub use crate::error::Error;
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Context;
     use std::str::FromStr;
 
     use crate::Error;
@@ -42,6 +43,11 @@ mod tests {
         assert_eq!(err.code(), 503);
         assert_eq!(err.description(), "An error occurred".to_string());
 
+        let chained_anyhow_err = throw_io_error().context("Failed to read file").unwrap_err();
+        let err: Error = chained_anyhow_err.into();
+        assert_eq!(err.code(), 503);
+        assert_eq!(err.description(), "Failed to read file -> IO operation failed".to_string());
+
         let compatible_err = anyhow::anyhow!(Error::NotFound("Item not found".to_string()));
         let err: Error = compatible_err.into();
         assert_eq!(err.code(), 404);
@@ -76,5 +82,9 @@ mod tests {
             .unwrap_or_else(|_| Error::ImATeaPot(not_json_raw.clone()));
         assert_eq!(err.code(), 418);
         assert_eq!(err.description(), "Some random error".to_string());
+    }
+
+    fn throw_io_error() -> anyhow::Result<()> {
+        Err(anyhow::anyhow!(std::io::Error::other("IO operation failed")))
     }
 }
