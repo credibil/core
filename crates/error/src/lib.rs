@@ -39,7 +39,7 @@ mod tests {
     fn parsing_anyhow_error() {
         let generic_anyhow_err = anyhow::anyhow!("An error occurred");
         let err: Error = generic_anyhow_err.into();
-        assert_eq!(err.code(), 418);
+        assert_eq!(err.code(), 503);
         assert_eq!(err.description(), "An error occurred".to_string());
 
         let compatible_err = anyhow::anyhow!(Error::NotFound("Item not found".to_string()));
