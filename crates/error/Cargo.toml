@@ -1,6 +1,6 @@
 [package]
-name = "credibil-api"
-description = "API types for Credibil"
+name = "credibil-error"
+description = "Error definitions and handling for Credibil projects"
 readme = "README.md"
 authors.workspace = true
 categories.workspace = true
@@ -16,10 +16,8 @@ version.workspace = true
 workspace = true
 
 [dependencies]
-bytes = "1.11.0"
-http.workspace = true
-http-body = "1.0.1"
-http-body-util = "0.1"
+anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-
+thiserror = "2.0.17"
+tracing.workspace = true

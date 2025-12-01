@@ -86,3 +86,4 @@ anyhow = "1.0.100"
 http = "1.3.1"
 serde = { version = "1.0.226", features = ["derive"] }
 serde_json = { version = "1.0.145", features = ["alloc"] }
+tracing = "0.1.43"
