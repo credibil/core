@@ -84,10 +84,12 @@ impl Error {
 }
 
 impl FromStr for Error {
-    type Err = serde_json::Error;
+    type Err = Self;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let obj: serde_json::Value = serde_json::from_str(s)?;
+        let Ok(obj) = serde_json::from_str::<Value>(s) else {
+            return Err(Self::ImATeaPot(s.to_string()));
+        };
 
         let code = obj.get("code").and_then(Value::as_u64).unwrap_or(TEA_POT);
         let description = obj.get("description").and_then(Value::as_str).unwrap_or(s).to_string();
