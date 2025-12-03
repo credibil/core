@@ -79,8 +79,7 @@ mod tests {
         assert_eq!(err.description(), json_incompatible_raw);
 
         let not_json_raw = "Some random error".to_string();
-        let err = Error::from_str(&not_json_raw)
-            .unwrap_or_else(|_| Error::ImATeaPot(not_json_raw.clone()));
+        let err = Error::from_str(&not_json_raw).unwrap_err();
         assert_eq!(err.code(), 418);
         assert_eq!(err.description(), "Some random error".to_string());
     }
